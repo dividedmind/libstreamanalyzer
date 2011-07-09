@@ -1,26 +1,27 @@
-/* This file is part of Strigi Desktop Search
- *
- * Copyright (C) 2006 Jos van den Oever <jos@vandenoever.info>
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public License
- * along with this library; see the file COPYING.LIB.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
- */
+/*
+    Strigi PDF parser.
+    Copyright (C) 2011  Rafał Rzepecki <divided.mind@gmail.com>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #include <sstream>
 
 #include "pdfparser.h"
+#include "dictionary.h"
+#include "name.h"
 
 #define forever for(;;)
 
@@ -142,6 +143,8 @@ void PdfParser::parseIndirectObject()
     int objectNumber = parseNumber();
     int generationNumber = parseNumber();
     checkKeyword("obj");
+    
+    Pdf::Object *object = parseObject();
 }
 
 /**
@@ -189,4 +192,40 @@ void PdfParser::checkKeyword(const char* keyword)
         ss << "expected keyword: " << keyword;
         throw ParseError(ss.str());
     }
+}
+
+/**
+ * Parse a PDF object occuring in the stream.
+ * Returns a newly created object. User should take its ownership.
+ */
+Pdf::Object *PdfParser::parseObject()
+{
+    skipWhitespaceAndComments();
+    switch (getChar()) {
+        case '<':
+            if (getChar() == '<')
+                return parseDictionary();
+        default:
+            throw ParseError("unknown object type");
+    }
+}
+
+/**
+ * Parse a dictionary object.
+ * PDF spec 7.3.7.
+ */
+Pdf::Dictionary *PdfParser::parseDictionary()
+{
+    Pdf::Dictionary *dict = new Pdf::Dictionary;
+    forever {
+        Pdf::Name *name = dynamic_cast<Pdf::Name *>(parseObject());
+        if (!name) {
+            delete dict;
+            throw ParseError("expected name");
+        }
+        
+        Pdf::Object *value = parseObject();
+        (*dict)[*name] = value;
+        delete name;
+    }        
 }
