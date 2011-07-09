@@ -19,9 +19,14 @@
 
 #include "pdftext.h"
 
-void PdfText::push(std::string text)
+void PdfText::push(const std::string &text)
 {
-    texts.push_back(text);
+    texts.push_back(Element(text, currentFont));
+}
+
+void PdfText::setFont(const std::string& font)
+{
+    currentFont = font;
 }
 
 PdfText& PdfText::operator+= ( const PdfText& other )
@@ -36,5 +41,5 @@ void PdfText::dump(PdfText::TextHandler *handler) const
 {
     std::string result;
     for (TextList::const_iterator it = texts.begin(); it != texts.end(); ++it)
-        handler->handle(*it);
+        handler->handle(it->text);
 }

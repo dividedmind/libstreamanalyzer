@@ -30,7 +30,9 @@ class PdfText
 public:
     class TextHandler;
     
-    void push(std::string text);
+    void push(const std::string &text);
+    void setFont(const std::string &font);
+
     PdfText &operator +=(const PdfText &other);
     void dump(TextHandler *handler) const;
     
@@ -41,7 +43,14 @@ public:
     };
     
 private:
-    typedef std::list<std::string> TextList;
+    std::string currentFont;
+
+    struct Element {
+        Element(const std::string &_text, const std::string &_font) : text(_text), font(_font) {}
+        const std::string text;
+        const std::string font;
+    };
+    typedef std::list<Element> TextList;
     TextList texts;
 };
 

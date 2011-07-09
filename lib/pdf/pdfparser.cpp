@@ -292,7 +292,8 @@ PdfParser::parseOperator() {
     if (lastOperator == "TJ" || lastOperator == "Tj") {
         text.push(lastString);
         lastString.resize(0);
-    }
+    } else if (lastOperator == "Tf")
+        text.setFont(lastName);
     lastObject = &lastOperator;
     return r;
 }
