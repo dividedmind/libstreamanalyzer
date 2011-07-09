@@ -28,8 +28,37 @@
 
 using namespace Strigi;
 
+class StreamHandler : public PdfParser::StreamHandler {
+public:
+    Strigi::StreamStatus handle(Strigi::StreamBase<char>* s) {
+        static int count = 0;
+        char name[32];
+        const char *c;
+        int32_t n = s->read(c, 1, 0);
+        if (n <= 0) {
+            return s->status();
+        }
+        sprintf(name, "out/%i", ++count);
+        FILE* file = fopen(name, "wb");
+        if (file == 0) {
+            return Error;
+        }
+        do {
+            fwrite(c, 1, n, file);
+            n = s->read(c, 1, 0);
+        } while (n > 0);
+        fclose(file);
+        return s->status();
+    }
+};
 
-extern int32_t streamcount;
+class TextHandler : public PdfParser::TextHandler {
+public:
+    Strigi::StreamStatus handle(const std::string& s) {
+        printf("%s\n", s.c_str());
+        return Ok;
+    }
+};
 
 int
 main(int argc, char** argv) {
@@ -38,10 +67,9 @@ main(int argc, char** argv) {
 #else
     mkdir("out", 0777);
 #endif
-    streamcount = 0;
     PdfParser parser;
-    PdfParser::DefaultStreamHandler streamhandler;
-    PdfParser::DefaultTextHandler texthandler;
+    StreamHandler streamhandler;
+    TextHandler texthandler;
     parser.setStreamHandler(&streamhandler);
     parser.setTextHandler(&texthandler);
     for (int i=1; i<argc; ++i) {
