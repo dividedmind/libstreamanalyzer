@@ -21,26 +21,23 @@
 #ifndef PDF_STREAM_H
 #define PDF_STREAM_H
 
+#include <boost/shared_ptr.hpp>
 #include <strigi/streambase.h>
 
 #include "object.h"
+#include "dictionary.h"
 
 namespace Pdf {
     
-class Dictionary;
 
 class Stream : public Pdf::Object
 {
 public:
-    Stream(Dictionary *dict, Strigi::StreamBase<char> *stream);
-    virtual ~Stream();
+    Stream(Dictionary *dict, Strigi::StreamBase<char> *stream) : dict(dict), stream(stream) {}
     
 private:
-    Stream(const Stream &other) {}
-    Stream &operator=(const Stream &other) {}
-    
-    Dictionary* dict;
-    Strigi::StreamBase<char> *stream;
+    boost::shared_ptr<Dictionary> dict;
+    boost::shared_ptr< Strigi::StreamBase<char> > stream;
 };
 
 }

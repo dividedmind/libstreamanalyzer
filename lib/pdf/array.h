@@ -21,13 +21,15 @@
 #ifndef PDF_ARRAY_H
 #define PDF_ARRAY_H
 
-#include "object.h"
 #include <vector>
+#include <boost/shared_ptr.hpp>
+
+#include "object.h"
 
 
 namespace Pdf {
 
-class Array : public Pdf::Object, public std::vector<Object *>
+class Array : public Object, public std::vector< boost::shared_ptr<Object> >
 {
 };
 

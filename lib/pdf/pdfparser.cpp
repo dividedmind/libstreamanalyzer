@@ -160,7 +160,7 @@ void PdfParser::parseIndirectObject()
     else if (objects[objectNumber])
         throw ParseError("duplicate object number"); // TODO handle multiple generations
     
-    objects[objectNumber] = object;
+    objects[objectNumber] = boost::shared_ptr<Pdf::Object>(object);
 }
 
 /**
@@ -266,7 +266,7 @@ Pdf::Dictionary *PdfParser::parseDictionary()
         }
         
         Pdf::Object *value = parseObject();
-        (*dict)[*name] = value;
+        (*dict)[*name] = boost::shared_ptr<Pdf::Object>(value);
         delete name;
         
         skipWhitespaceAndComments();
@@ -412,7 +412,7 @@ Pdf::Stream* PdfParser::parseStream(Pdf::Dictionary* dict)
     stream->reset(currentPosition());
     bufEnd = pos;
     
-    Pdf::Number *length = dynamic_cast<Pdf::Number *>((*dict)["Length"]);
+    Pdf::Number *length = dynamic_cast<Pdf::Number *>((*dict)["Length"].get());
     if (!length)
         throw ParseError("invalid stream length (not a number)");
     
@@ -481,7 +481,7 @@ Pdf::Array *PdfParser::parseArray()
     
     while (getChar() != ']') {
         putChar();
-        arr->push_back(parseObject());
+        arr->push_back(boost::shared_ptr<Pdf::Object>(parseObject()));
         skipWhitespaceAndComments();
     }
     

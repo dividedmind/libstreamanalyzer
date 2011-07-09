@@ -20,8 +20,10 @@
 #ifndef PDFPARSER_H
 #define PDFPARSER_H
 
-#include <strigi/streambase.h>
 #include <vector>
+#include <boost/shared_ptr.hpp>
+
+#include <strigi/streambase.h>
 
 namespace Pdf {
     class Object;
@@ -89,7 +91,7 @@ private:
     void resetStream(int64_t position);
     Pdf::Array* parseArray();
     
-    std::vector<Pdf::Object *> objects;
+    std::vector< boost::shared_ptr<Pdf::Object> > objects;
 
 public:
     PdfParser();

@@ -18,15 +18,3 @@
 */
 
 #include "dictionary.h"
-
-using namespace Pdf;
-
-Dictionary::Dictionary() : std::map<std::string, Object *>()
-{
-}
-
-Dictionary::~Dictionary()
-{
-    for (iterator it = begin(); it != end(); ++it)
-        delete it->second;
-}

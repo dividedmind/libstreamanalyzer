@@ -20,12 +20,3 @@
 
 #include "stream.h"
 
-using namespace Pdf;
-
-Stream::Stream(Dictionary* dict, Strigi::StreamBase<char> *stream): dict(dict), stream(stream) {}
-
-Stream::~Stream()
-{
-    delete dict;
-    delete stream;
-}

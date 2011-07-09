@@ -25,18 +25,12 @@
 #include <string>
 
 #include "object.h"
+#include <boost/shared_ptr.hpp>
 
 namespace Pdf {
 
-class Dictionary : public Pdf::Object, public std::map<std::string, Pdf::Object *>
+class Dictionary : public Pdf::Object, public std::map< std::string, boost::shared_ptr<Pdf::Object> >
 {
-public:
-    Dictionary();
-    ~Dictionary();
-    
-private:
-    Dictionary(const Dictionary &) : std::map<std::string, Pdf::Object *>() {}
-    Dictionary &operator=(const Dictionary &) { return *this; }
 };
 
 }

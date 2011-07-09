@@ -1,3 +1,11 @@
+project (kdeparser)
+
+cmake_minimum_required(VERSION 2.8)
+
+find_package(Boost REQUIRED)
+
+include_directories(${Boost_INCLUDE_DIR})
+
 if (Magic_FOUND)
 	add_executable(pdftest pdftest.cpp)
 	target_link_libraries(pdftest STATIC streams ${MAGIC_LIBRARIES})
