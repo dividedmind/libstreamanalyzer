@@ -473,6 +473,10 @@ void PdfParser::resetStream(int64_t position)
     }
 }
 
+/**
+ * Parse an array object.
+ * PDF spec section 7.3.6.
+ */
 Pdf::Array *PdfParser::parseArray()
 {
     Pdf::Array *arr = new Pdf::Array;
