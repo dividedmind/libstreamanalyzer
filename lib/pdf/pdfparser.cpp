@@ -17,11 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <math.h>
 #include <sstream>
 
 #include "pdfparser.h"
 #include "dictionary.h"
 #include "name.h"
+#include "number.h"
 
 #define forever for(;;)
 
@@ -140,8 +142,8 @@ void PdfParser::skipCommentBody()
  */
 void PdfParser::parseIndirectObject()
 {
-    int objectNumber = parseNumber();
-    int generationNumber = parseNumber();
+    int objectNumber = parseSimpleNumber();
+    int generationNumber = parseSimpleNumber();
     checkKeyword("obj");
     
     Pdf::Object *object = parseObject();
@@ -150,7 +152,7 @@ void PdfParser::parseIndirectObject()
 /**
  * Parse a simple, nonnegative integer number.
  */
-int PdfParser::parseNumber()
+int PdfParser::parseSimpleNumber()
 {
     skipWhitespaceAndComments();
     int result = 0;
@@ -207,6 +209,21 @@ Pdf::Object *PdfParser::parseObject()
                 return parseDictionary();
         case '/':
             return parseName();
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '+':
+        case '-':
+        case '.':
+            putChar();
+            return parseNumber();
         default:
             throw ParseError("unknown object type");
     }
@@ -259,6 +276,7 @@ Pdf::Name *PdfParser::parseName()
 char PdfParser::getHexChar()
 {
     char result = fromHex(getChar());
+    return result * 16 + fromHex(getChar());
 }
 
 /**
@@ -309,4 +327,41 @@ bool PdfParser::isDelimiter(char c)
         default:
             return false;
     }
+}
+
+/**
+ * Parses a PDF number.
+ * PDF spec 7.3.3.
+ */
+Pdf::Number *PdfParser::parseNumber()
+{
+    bool positive = true;
+    int integral = 0, mantissa = 0;
+    
+    switch (getChar()) {
+        case '+':
+            break;
+        case '-':
+            positive = false;
+        default:
+            putChar();
+    }
+    
+    try {
+        integral = parseSimpleNumber();
+    } catch (ParseError) {
+        integral = 0;
+    }
+    
+    if (getChar() == '.') try {
+        mantissa = parseSimpleNumber();
+    } catch (ParseError) {
+        mantissa = 0;
+    } else
+        putChar();
+
+    if (mantissa == 0)
+        return new Pdf::Number((positive ? +1 : -1) * integral);
+    else
+        return new Pdf::Number((positive ? +1.0f : -1.0f) * (integral + 1.0f * mantissa / pow10(ceil(log10(mantissa)))));
 }
