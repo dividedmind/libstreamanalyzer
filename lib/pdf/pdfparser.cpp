@@ -17,6 +17,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA.
  */
+
+#include <sstream>
+
 #include "pdfparser.h"
 
 #define forever for(;;)
@@ -29,7 +32,15 @@ PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     this->stream = stream;
     stream->reset(0);
 
-    skipWhitespaceAndComments();
+    try {
+        forever parseIndirectObject();
+    } catch (Strigi::StreamStatus s) {}
+    catch (ParseError err) {
+        stream->reset(bufferStart + (pos - buffer));
+        std::stringstream ss;
+        ss << err.what() << "; file position: " << stream->position();
+        throw ParseError(ss.str());
+    };
     
     this->stream = 0;
     return stream->status();
@@ -69,8 +80,11 @@ char PdfParser::getChar()
 void PdfParser::fillBuffer(int minChars)
 {
     bufferStart = stream->position();
-    if (stream->read(buffer, minChars, 0) < minChars)
+    int readChars;
+    if ((readChars = stream->read(buffer, minChars, 0)) < minChars)
         throw stream->status();
+    pos = buffer;
+    bufEnd = buffer + readChars;
 }
 
 /**
@@ -106,14 +120,56 @@ void PdfParser::putChar()
         pos--;
 }
 
+/**
+ * Skips comment body (up to first newline character).
+ */
 void PdfParser::skipCommentBody()
 {
-    forever {
-        switch (getChar()) {
-            case '\r':
-            case '\n':
-                break;
-            default:;
-        }
+    forever switch (getChar()) {
+        case '\r':
+        case '\n':
+            return;
+        default:;
+    }
+}
+
+/**
+ * Parse an indirect object and put it in the indirect object table.
+ * PDF spec 7.3.10.
+ */
+void PdfParser::parseIndirectObject()
+{
+    int objectNumber = parseNumber();
+    int generationNumber = parseNumber();
+}
+
+/**
+ * Parse a simple, nonnegative integer number.
+ */
+int PdfParser::parseNumber()
+{
+    skipWhitespaceAndComments();
+    int result = 0;
+    bool atLeastOne = false;
+    forever switch (char c = getChar()) {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            result *= 10;
+            result += c - '0';
+            atLeastOne = true;
+            continue;
+        default:
+            putChar();
+            if (!atLeastOne)
+                throw ParseError("expected a number");
+            return result;
     }
 }

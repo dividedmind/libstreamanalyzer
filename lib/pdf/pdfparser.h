@@ -37,7 +37,7 @@ public:
     
     class ParseError : public std::exception {
     public:
-        ParseError(const char *msg) : message(msg) {}
+        ParseError(const std::string &msg) : message(msg) {}
         virtual ~ParseError() throw() {}
         
         const char *what() const throw() {
@@ -62,6 +62,8 @@ private:
     void putChar();
     void fillBuffer(int minChars);
     bool isSpace(char c);
+    void parseIndirectObject();
+    int parseNumber();
 
 public:
     PdfParser();

@@ -22,6 +22,7 @@
 #include "fileinputstream.h"
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <iostream>
 #ifdef _WIN32
 #include <direct.h>
 #endif
@@ -80,9 +81,13 @@ main(int argc, char** argv) {
 
         // parse the file
         FileInputStream file(argv[i]);
-        StreamStatus r = parser.parse(&file);
-        if (r != Eof) {
-            printf("error in %s\n", argv[i]);
+        try {
+            StreamStatus r = parser.parse(&file);
+        } catch (PdfParser::ParseError error) {
+            std::cout << "error in " << argv[i] << ": " << error.what() << std::endl;
+            const char *buf;
+            file.read(buf, 0, 1024);
+            std::cout << "rest: " << std::endl << buf;
         }
     }
     return 0;
