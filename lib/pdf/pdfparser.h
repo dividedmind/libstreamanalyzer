@@ -25,6 +25,7 @@
 namespace Pdf {
     class Object;
     class Dictionary;
+    class Name;
 };
 
 class PdfParser {
@@ -66,12 +67,17 @@ private:
     void skipCommentBody();
     void putChar();
     void fillBuffer(int minChars);
-    bool isSpace(char c);
+    static bool isSpace(char c);
     void parseIndirectObject();
     int parseNumber();
     void checkKeyword(const char* keyword);
     Pdf::Object* parseObject();
     Pdf::Dictionary* parseDictionary();
+    Pdf::Name* parseName();
+    char getHexChar();
+    static char fromHex(char c);
+    static bool isRegular(char c);
+    static bool isDelimiter(char c);
 
 public:
     PdfParser();

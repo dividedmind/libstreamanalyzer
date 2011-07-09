@@ -205,6 +205,8 @@ Pdf::Object *PdfParser::parseObject()
         case '<':
             if (getChar() == '<')
                 return parseDictionary();
+        case '/':
+            return parseName();
         default:
             throw ParseError("unknown object type");
     }
@@ -228,4 +230,83 @@ Pdf::Dictionary *PdfParser::parseDictionary()
         (*dict)[*name] = value;
         delete name;
     }        
+}
+
+/**
+ * Parse a name object.
+ * PDF spec 7.3.5.
+ */
+Pdf::Name *PdfParser::parseName()
+{
+    std::string s;
+    forever {
+        char c = getChar();
+        if (c == '#')
+            c = getHexChar();
+        else if(!isRegular(c)) {
+            putChar();
+            break;
+        }
+        s += c;
+    }
+    
+    return new Pdf::Name(s);
+}
+
+/**
+ * Read two hexadecimal digits and return character corresponding to that number.
+ */
+char PdfParser::getHexChar()
+{
+    char result = fromHex(getChar());
+}
+
+/**
+ * Interpret the argument as a hexadecimal figure.
+ * Throw a @ref ParseError if it isn't one.
+ */
+char PdfParser::fromHex(char c)
+{
+    c = tolower(c);
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    else {
+        std::stringstream ss; 
+        ss << "expected a hex char, got '" << c << "'";
+        throw ParseError(ss.str());
+    }
+}
+
+/**
+ * Checks if @arg c is a regular character.
+ * PDF spec 7.2.2.
+ */
+bool PdfParser::isRegular(char c)
+{
+    return !isSpace(c) && !isDelimiter(c);
+}
+
+/**
+ * Checks if @arg c is a delimiter.
+ * PDF spec 7.2.2.
+ */
+bool PdfParser::isDelimiter(char c)
+{
+    switch (c) {
+        case '(':
+        case ')':
+        case '<':
+        case '>':
+        case '[':
+        case ']':
+        case '{':
+        case '}':
+        case '/':
+        case '%':
+            return true;
+        default:
+            return false;
+    }
 }
