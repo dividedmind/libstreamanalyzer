@@ -64,6 +64,7 @@ private:
     bool isSpace(char c);
     void parseIndirectObject();
     int parseNumber();
+    void checkKeyword(const char* keyword);
 
 public:
     PdfParser();

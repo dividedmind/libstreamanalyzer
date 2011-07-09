@@ -141,6 +141,7 @@ void PdfParser::parseIndirectObject()
 {
     int objectNumber = parseNumber();
     int generationNumber = parseNumber();
+    checkKeyword("obj");
 }
 
 /**
@@ -171,5 +172,21 @@ int PdfParser::parseNumber()
             if (!atLeastOne)
                 throw ParseError("expected a number");
             return result;
+    }
+}
+
+/**
+ * Ensures that @arg keyword comes next in stream.
+ * Throws a ParseError if it doesn't.
+ */
+void PdfParser::checkKeyword(const char* keyword)
+{
+    skipWhitespaceAndComments();
+    const char *i;
+    for (i = keyword; *i && getChar() == *i; i++);
+    if (*i) {
+        std::stringstream ss;
+        ss << "expected keyword: " << keyword;
+        throw ParseError(ss.str());
     }
 }
