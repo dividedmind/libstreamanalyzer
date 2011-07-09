@@ -21,6 +21,7 @@
 #define PDFPARSER_H
 
 #include <strigi/streambase.h>
+#include "pdftext.h"
 
 class PdfParser {
 public:
@@ -33,12 +34,7 @@ public:
     public:
         Strigi::StreamStatus handle(Strigi::StreamBase<char>* s);
     };
-    class TextHandler {
-    public:
-        virtual ~TextHandler() {}
-        virtual Strigi::StreamStatus handle(const std::string& s) = 0;
-    };
-    class DefaultTextHandler : public TextHandler {
+    class DefaultTextHandler : public PdfText::TextHandler {
         Strigi::StreamStatus handle(const std::string& s);
     };
 private:
@@ -58,7 +54,9 @@ private:
 
     // event handlers
     StreamHandler* streamhandler;
-    TextHandler* texthandler;
+    PdfText::TextHandler* texthandler;
+    
+    PdfText text;
 
     Strigi::StreamStatus read(int32_t min, int32_t max);
     void forwardStream(Strigi::StreamBase<char>* s);
@@ -103,7 +101,7 @@ public:
     Strigi::StreamStatus parse(Strigi::StreamBase<char>* s);
     const std::string& error() { return m_error; }
     void setStreamHandler(StreamHandler* handler) { streamhandler = handler; }
-    void setTextHandler(TextHandler* handler) { texthandler = handler; }
+    void setTextHandler(PdfText::TextHandler* handler) { texthandler = handler; }
 };
 
 #endif

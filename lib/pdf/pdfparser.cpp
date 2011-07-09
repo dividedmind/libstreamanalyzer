@@ -290,9 +290,7 @@ PdfParser::parseOperator() {
     const char *s = start + p;
     lastOperator.assign(s, pos-s);
     if (lastOperator == "TJ" || lastOperator == "Tj") {
-        if (texthandler) {
-            texthandler->handle(lastString);
-        }
+        text.push(lastString);
         lastString.resize(0);
     }
     lastObject = &lastOperator;
@@ -579,7 +577,7 @@ PdfParser::parse(StreamBase<char>* stream) {
     lastNumber = -1;
     lastName.resize(0);
     lastObject = 0;
-
+    
     r = skipWhitespaceOrComment();
     if (r != Ok) {
         fprintf(stderr, "Error: %s\n", stream->error());
@@ -590,6 +588,10 @@ PdfParser::parse(StreamBase<char>* stream) {
     if (r == Error) {
         fprintf(stderr, "Error in parsing: %s\n", m_error.c_str());
     }
+    
+    if (texthandler)
+        text.dump(texthandler);
+    
     return r;
 }
 Strigi::StreamStatus
@@ -651,6 +653,7 @@ PdfParser::handleSubStream(StreamBase<char>* s, const std::string& type,
     parser.texthandler = texthandler;
     parser.streamhandler = streamhandler;
     if (type == "ObjStm") {
+        text += parser.text;
         if (parser.parseObjectStream(s, offset, numberofobjects) == Eof) {
             return Eof;
         } else {
@@ -661,6 +664,7 @@ PdfParser::handleSubStream(StreamBase<char>* s, const std::string& type,
     // try to parse as a content stream
     s->reset(0);
     if (parser.parseContentStream(s) == Eof) {
+        text += parser.text;
         return Eof;
     }
     // handle the stream by an external handler
@@ -669,5 +673,6 @@ PdfParser::handleSubStream(StreamBase<char>* s, const std::string& type,
         streamhandler->handle(s);
     }
     forwardStream(s);
+    
     return s->status();
 }
