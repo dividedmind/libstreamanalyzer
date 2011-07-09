@@ -26,6 +26,7 @@
 #include "number.h"
 #include "stream.h"
 #include "reference.h"
+#include "array.h"
 
 #include "pdfparser.h"
 
@@ -245,6 +246,8 @@ Pdf::Object *PdfParser::parseObject()
         case '.':
             putChar();
             return parseNumberOrReference();
+        case '[':
+            return parseArray();
     }
 }
 
@@ -456,6 +459,9 @@ Pdf::Object *PdfParser::parseNumberOrReference()
     }
 }
 
+/**
+ * Set stream position.
+ */
 void PdfParser::resetStream(int64_t position)
 {
     if (position < bufferStart) {
@@ -465,4 +471,19 @@ void PdfParser::resetStream(int64_t position)
     } else {
         pos = buffer + position - bufferStart;
     }
+}
+
+Pdf::Array *PdfParser::parseArray()
+{
+    Pdf::Array *arr = new Pdf::Array;
+    
+    skipWhitespaceAndComments();
+    
+    while (getChar() != ']') {
+        putChar();
+        arr->push_back(parseObject());
+        skipWhitespaceAndComments();
+    }
+    
+    return arr;
 }

@@ -29,6 +29,7 @@ namespace Pdf {
     class Name;
     class Number;
     class Stream;
+    class Array;
 };
 
 class PdfParser {
@@ -86,6 +87,7 @@ private:
     int64_t currentPosition();
     Pdf::Object* parseNumberOrReference();
     void resetStream(int64_t position);
+    Pdf::Array* parseArray();
     
     std::vector<Pdf::Object *> objects;
 
