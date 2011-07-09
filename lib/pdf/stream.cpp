@@ -18,31 +18,14 @@
 */
 
 
-#ifndef PDF_NUMBER_H
-#define PDF_NUMBER_H
+#include "stream.h"
 
-#include "object.h"
+using namespace Pdf;
 
+Stream::Stream(Dictionary* dict, Strigi::StreamBase<char> *stream): dict(dict), stream(stream) {}
 
-namespace Pdf {
-
-class Number : public Pdf::Object
+Stream::~Stream()
 {
-public:
-    Number(int num);
-    Number(double num);
-    
-    operator int() const;
-    
-private:
-    enum Type {
-        Int, Real
-    };
-    Type type;
-    int intValue;
-    double realValue;
-};
-
+    delete dict;
+    delete stream;
 }
-
-#endif // PDF_NUMBER_H

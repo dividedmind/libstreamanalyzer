@@ -24,6 +24,9 @@
 #include "dictionary.h"
 #include "name.h"
 #include "number.h"
+#include "stream.h"
+#include "../logging.h"
+#include <strigi/subinputstream.h>
 
 #define forever for(;;)
 
@@ -205,8 +208,16 @@ Pdf::Object *PdfParser::parseObject()
     skipWhitespaceAndComments();
     switch (getChar()) {
         case '<':
-            if (getChar() == '<')
-                return parseDictionary();
+            if (getChar() == '<') {
+                Pdf::Dictionary *dict = parseDictionary();
+                if (dict->count("Length") > 0)
+                    return parseStream(dict);
+                else
+                    return dict;
+            }
+            // fall through to default
+        default:
+            throw ParseError("unknown object type");
         case '/':
             return parseName();
         case '0':
@@ -224,8 +235,6 @@ Pdf::Object *PdfParser::parseObject()
         case '.':
             putChar();
             return parseNumber();
-        default:
-            throw ParseError("unknown object type");
     }
 }
 
@@ -371,4 +380,45 @@ Pdf::Number *PdfParser::parseNumber()
         return new Pdf::Number((positive ? +1 : -1) * integral);
     else
         return new Pdf::Number((positive ? +1.0f : -1.0f) * (integral + 1.0f * mantissa / pow10(ceil(log10(mantissa)))));
+}
+
+/** Isolates a PDF stream.
+ * PDF spec section 7.3.8.
+ * @arg dict is the stream dictionary.
+ */
+Pdf::Stream* PdfParser::parseStream(Pdf::Dictionary* dict)
+{
+    checkKeyword("stream");
+    
+    char c = getChar();
+    if (c == '\r')
+        c = getChar();
+    if (c != '\n')
+        throw ParseError("EOL expected after 'stream' keyword");
+
+    stream->reset(currentPosition());
+    bufEnd = pos;
+    
+    Pdf::Number *length = dynamic_cast<Pdf::Number *>((*dict)["Length"]);
+    if (!length)
+        throw ParseError("invalid stream length (not a number)");
+    
+    Strigi::StreamBase<char> *subStream = new Strigi::SubInputStream(stream, *length);
+    Pdf::Stream *streamObject = new Pdf::Stream(dict, subStream);
+    
+    stream->skip(*length);
+    bufferStart = stream->position();
+    bufEnd = pos = buffer;
+    
+    checkKeyword("endstream");
+    
+    return streamObject;
+}
+
+/**
+ * @return the current position in the stream.
+ */
+int64_t PdfParser::currentPosition()
+{
+    return bufferStart + (pos - buffer);
 }

@@ -33,3 +33,11 @@ Number::Number(double num)
     type = Real;
     realValue = num;
 }
+
+Number::operator int() const
+{
+    if (type == Int)
+        return intValue;
+    else
+        return static_cast<int>(realValue);
+}

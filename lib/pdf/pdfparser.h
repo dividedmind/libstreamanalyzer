@@ -27,6 +27,7 @@ namespace Pdf {
     class Dictionary;
     class Name;
     class Number;
+    class Stream;
 };
 
 class PdfParser {
@@ -80,6 +81,8 @@ private:
     static bool isRegular(char c);
     static bool isDelimiter(char c);
     Pdf::Number* parseNumber();
+    Pdf::Stream* parseStream(Pdf::Dictionary* dict);
+    int64_t currentPosition();
 
 public:
     PdfParser();
