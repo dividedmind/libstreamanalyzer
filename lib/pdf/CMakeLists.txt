@@ -6,5 +6,5 @@ endif (Magic_FOUND)
 add_library(pdfstream STATIC pdfparser.cpp)
 target_link_libraries(pdfstream streams)
 
-add_executable(pdf stream.cpp number.cpp name.cpp dictionary.cpp object.cpp pdf.cpp pdfparser.cpp)
+add_executable(pdf reference.cpp stream.cpp number.cpp name.cpp dictionary.cpp object.cpp pdf.cpp pdfparser.cpp)
 target_link_libraries(pdf streams)

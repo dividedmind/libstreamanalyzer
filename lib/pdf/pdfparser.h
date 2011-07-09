@@ -84,6 +84,8 @@ private:
     Pdf::Number* parseNumber();
     Pdf::Stream* parseStream(Pdf::Dictionary* dict);
     int64_t currentPosition();
+    Pdf::Object* parseNumberOrReference();
+    void resetStream(int64_t position);
     
     std::vector<Pdf::Object *> objects;
 

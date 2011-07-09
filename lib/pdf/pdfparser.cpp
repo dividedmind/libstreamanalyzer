@@ -19,14 +19,15 @@
 
 #include <math.h>
 #include <sstream>
+#include <strigi/subinputstream.h>
 
-#include "pdfparser.h"
 #include "dictionary.h"
 #include "name.h"
 #include "number.h"
 #include "stream.h"
-#include "../logging.h"
-#include <strigi/subinputstream.h>
+#include "reference.h"
+
+#include "pdfparser.h"
 
 #define forever for(;;)
 
@@ -145,8 +146,8 @@ void PdfParser::skipCommentBody()
  */
 void PdfParser::parseIndirectObject()
 {
-    int objectNumber = parseSimpleNumber();
-    int generationNumber = parseSimpleNumber();
+    unsigned int objectNumber = parseSimpleNumber();
+    unsigned int generationNumber = parseSimpleNumber();
     checkKeyword("obj");
     
     Pdf::Object *object = parseObject();
@@ -243,7 +244,7 @@ Pdf::Object *PdfParser::parseObject()
         case '-':
         case '.':
             putChar();
-            return parseNumber();
+            return parseNumberOrReference();
     }
 }
 
@@ -430,4 +431,38 @@ Pdf::Stream* PdfParser::parseStream(Pdf::Dictionary* dict)
 int64_t PdfParser::currentPosition()
 {
     return bufferStart + (pos - buffer);
+}
+
+/**
+ * Parse a number or reference object
+ */
+Pdf::Object *PdfParser::parseNumberOrReference()
+{
+    Pdf::Number *number = parseNumber();
+    
+    int64_t position = currentPosition();
+    
+    Pdf::Number *generation = 0;
+    try {
+        generation = parseNumber();
+        checkKeyword("R");
+        Pdf::Reference *ref = new Pdf::Reference(*number, *generation);
+        delete number;
+        delete generation;
+        return ref;
+    } catch (ParseError) {
+        resetStream(position);
+        return number;
+    }
+}
+
+void PdfParser::resetStream(int64_t position)
+{
+    if (position < bufferStart) {
+        stream->reset(position);
+        bufferStart = stream->position();
+        bufEnd = pos = buffer;
+    } else {
+        pos = buffer + position - bufferStart;
+    }
 }
