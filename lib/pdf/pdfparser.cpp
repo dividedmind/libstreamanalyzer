@@ -150,6 +150,15 @@ void PdfParser::parseIndirectObject()
     checkKeyword("obj");
     
     Pdf::Object *object = parseObject();
+    
+    checkKeyword("endobj");
+    
+    if (objects.size() <= objectNumber)
+        objects.resize(objectNumber + 1);
+    else if (objects[objectNumber])
+        throw ParseError("duplicate object number"); // TODO handle multiple generations
+    
+    objects[objectNumber] = object;
 }
 
 /**

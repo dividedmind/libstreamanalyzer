@@ -21,6 +21,7 @@
 #define PDFPARSER_H
 
 #include <strigi/streambase.h>
+#include <vector>
 
 namespace Pdf {
     class Object;
@@ -83,6 +84,8 @@ private:
     Pdf::Number* parseNumber();
     Pdf::Stream* parseStream(Pdf::Dictionary* dict);
     int64_t currentPosition();
+    
+    std::vector<Pdf::Object *> objects;
 
 public:
     PdfParser();
