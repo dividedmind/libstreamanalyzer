@@ -246,6 +246,13 @@ Pdf::Dictionary *PdfParser::parseDictionary()
         Pdf::Object *value = parseObject();
         (*dict)[*name] = value;
         delete name;
+        
+        skipWhitespaceAndComments();
+        if (getChar() == '>') {
+            if (getChar() == '>')
+                return dict;
+            else putChar();
+        } else putChar();
     }        
 }
 
