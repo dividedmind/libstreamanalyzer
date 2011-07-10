@@ -561,6 +561,12 @@ Pdf::String *PdfParser::parseLiteralString()
                     str += getOctalChar();
                     break;
                 case '\n':
+                    if (getChar() != '\r')
+                        putChar();
+                    break;
+                case '\r':
+                    if (getChar() != '\n')
+                        putChar();
                     break;
                 default:
                     putChar();
