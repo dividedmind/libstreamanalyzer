@@ -17,16 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "dictionary.h"
-#include "indirectobject.h"
-#include "number.h"
+#include <boost/spirit/include/qi_parse_attr.hpp>
+#include <boost/spirit/include/qi_lit.hpp>
+#include <boost/spirit/include/qi_uint.hpp>
+#include <boost/spirit/include/qi_sequence.hpp>
+
 #include "parser.h"
-#include "reference.h"
-#include "xreftable.h"
 
 #include "document.h"
+#include "grammar.h"
 
 using namespace Pdf;
+
+namespace qi = boost::spirit::qi;
 
 shared_ptr<Document> Document::from(Strigi::StreamBase< char >* stream)
 {
@@ -37,8 +40,22 @@ shared_ptr<Document> Document::from(Strigi::StreamBase< char >* stream)
 
 Document::Document(shared_ptr<Parser> parser) : parser(parser)
 {
+    using qi::ulong_;
+    using boost::phoenix::ref;
+    using qi::parse;
+
     parser->seek(parser->size());
     parser->findBackwards("startxref");
+    
+    unsigned long startxref;
+    
+    Parser::ConstIterator it = parser->here();
+    
+    if (!qi::parse(it, parser->end(), 
+        "startxref" >> Pdf::newline >> ulong_, startxref))
+        throw Parser::ParseError("parse error when parsing startxref");
+    
+    cerr << startxref << endl;
 }
 
 shared_ptr<Object> Document::dereference(Reference* ref)
@@ -55,4 +72,3 @@ shared_ptr<Object> Document::dereference(Reference* ref)
     
     return objects[index];*/
 }
-

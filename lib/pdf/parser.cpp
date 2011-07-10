@@ -126,9 +126,14 @@ char Parser::ConstIterator::operator*() const
     return c;
 }
 
+bool Parser::ConstIterator::operator==(const Pdf::Parser::ConstIterator& other) const
+{
+    return other.parent == parent && other.position == position;
+}
+
 bool Parser::ConstIterator::operator!=(const Pdf::Parser::ConstIterator& other) const
 {
-    return other.parent != parent || other.position != position;
+    return !(*this == other);
 }
 
 Parser::ConstIterator Parser::end()

@@ -17,41 +17,17 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef PDF_DOCUMENT_H
-#define PDF_DOCUMENT_H
+#ifndef PDF_GRAMMAR_H
+#define PDF_GRAMMAR_H
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
-
-#include <strigi/streambase.h>
+#include <boost/spirit/include/qi_rule.hpp>
+#include "parser.h"
 
 namespace Pdf {
+using namespace boost::spirit::qi;
+
 //
-
-using namespace boost;
-
-class Object;
-class Parser;
-class Dictionary;
-class XRefTable;
-class Reference;
-
-class Document {
-public:
-    static shared_ptr<Document> from(Strigi::StreamBase<char> *stream);
-    
-private:
-    Document(shared_ptr<Parser> parser);
-    
-    shared_ptr<Object> dereference(Reference* ref);
-    
-    shared_ptr<Parser> parser;
-    std::vector< shared_ptr<Object> > objects;
-    int startXRef;
-    shared_ptr<Dictionary> trailer;
-    shared_ptr<XRefTable> xRefTable;
-};
-
+extern const rule<Parser::ConstIterator> newline;
 }
 
-#endif // PDF_DOCUMENT_H
+#endif // PDF_GRAMMAR_H

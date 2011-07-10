@@ -27,9 +27,6 @@
 namespace Pdf {
 //
 
-using namespace boost;
-using namespace std;
-
 class Object;
 class Dictionary;
 class Name;
@@ -40,6 +37,8 @@ class Array;
 class Reference;
 class XRefTable;
 class IndirectObject;
+
+using namespace std;
 
 class Parser {
 public:
@@ -65,7 +64,7 @@ public:
     class ConstIterator {
     public:
         typedef std::forward_iterator_tag iterator_category;
-        typedef const char value_type;
+        typedef char value_type;
         typedef int64_t difference_type;
         typedef const char *pointer;
         typedef const char &reference;
@@ -74,6 +73,7 @@ public:
         char operator++();        
         char operator*() const;
         bool operator !=(const ConstIterator &other) const;
+        bool operator ==(const ConstIterator &other) const;
         
     private:
         Parser *parent;
