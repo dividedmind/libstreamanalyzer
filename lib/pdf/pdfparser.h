@@ -32,6 +32,7 @@ namespace Pdf {
     class Number;
     class Stream;
     class Array;
+    class String;
 };
 
 class PdfParser {
@@ -86,10 +87,12 @@ private:
     static bool isDelimiter(char c);
     Pdf::Number* parseNumber();
     Pdf::Stream* parseStream(Pdf::Dictionary* dict);
+    Pdf::String* parseLiteralString();
     int64_t currentPosition();
     Pdf::Object* parseNumberOrReference();
     void resetStream(int64_t position);
     Pdf::Array* parseArray();
+    char getOctalChar();
     
     std::vector< boost::shared_ptr<Pdf::Object> > objects;
 

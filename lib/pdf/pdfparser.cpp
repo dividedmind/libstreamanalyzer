@@ -27,6 +27,7 @@
 #include "stream.h"
 #include "reference.h"
 #include "array.h"
+#include "string.h"
 
 #include "pdfparser.h"
 
@@ -248,6 +249,8 @@ Pdf::Object *PdfParser::parseObject()
             return parseNumberOrReference();
         case '[':
             return parseArray();
+        case '(':
+            return parseLiteralString();
     }
 }
 
@@ -490,4 +493,98 @@ Pdf::Array *PdfParser::parseArray()
     }
     
     return arr;
+}
+
+/**
+ * Parse a literal string.
+ * PDF spec section 7.3.4.2.
+ */
+Pdf::String *PdfParser::parseLiteralString()
+{
+    int parentheses = 0;
+    char c;
+    std::string str;
+    
+    forever switch (c = getChar()) {
+        case '(':
+            parentheses += 1;
+            break;
+        case ')':
+            if (parentheses == 0)
+                return new Pdf::String(str);
+            else parentheses--;
+            break;
+        case '\\':
+            switch (getChar()) {
+                case 'n':
+                    str += '\n';
+                    break;
+                case 'r':
+                    str += '\r';
+                    break;
+                case 't':
+                    str += '\t';
+                    break;
+                case 'b':
+                    str += '\b';
+                    break;
+                case 'f':
+                    str += '\f';
+                    break;
+                case '(':
+                    str += '(';
+                    break;
+                case ')':
+                    str += ')';
+                    break;
+                case '\\':
+                    str += '\\';
+                    break;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                    putChar();
+                    str += getOctalChar();
+                    break;
+                case '\n':
+                    break;
+                default:
+                    putChar();
+            }
+            break;
+        default:
+            str += c;
+    }
+}
+
+/**
+ * Get an octal number. 
+ * It has to have at least one and at most three digits. 
+ * It may be zero-padded.
+ */
+char PdfParser::getOctalChar()
+{
+    char c, result = 0, count = 0;
+    while (count++ < 3) switch (c = getChar()) {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+            result *= 8;
+            result += c - '0';
+        default:
+            putChar();
+            return result;
+    }
+    
+    return result;
 }
