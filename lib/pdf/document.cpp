@@ -37,47 +37,22 @@ shared_ptr<Document> Document::from(Strigi::StreamBase< char >* stream)
 
 Document::Document(shared_ptr<Parser> parser) : parser(parser)
 {
-    parser->resetStream(parser->fileSize());
+    parser->seek(parser->size());
     parser->findBackwards("startxref");
-    parser->checkKeyword("startxref");
-    startXRef = parser->parseSimpleNumber();
-    
-    parser->findBackwards("trailer");
-    parser->checkKeyword("trailer");
-    parser->skipWhitespaceAndComments();
-    if (parser->getChar() != '<' || parser->getChar() != '<')
-        throw Parser::ParseError("expected trailer dictionary");
-    
-    
-    trailer = boost::shared_ptr<Pdf::Dictionary>(parser->parseDictionary());
-    if (trailer->count("Prev"))
-        std::cerr << "PdfParser warning: multiple xref tables not yet supported" << std::endl;
-    
-    int size = dynamic_cast<const Pdf::Number &>(trailer->get("Size"));
-    objects.resize(size);
-    xRefTable = boost::shared_ptr<Pdf::XRefTable>(new Pdf::XRefTable(size));
-    parser->resetStream(startXRef);
-    xRefTable->parse(parser.get());
-
-    boost::shared_ptr<Pdf::Object> root = trailer->at("Root");
-    if (Pdf::Reference *ref = dynamic_cast<Pdf::Reference *>(root.get()))
-        root = dereference(ref);
-
-    std::cerr << *root;
 }
 
 shared_ptr<Object> Document::dereference(Reference* ref)
 {
-    int index = ref->index();
+/*    int index = ref->index();
     
     if (!objects[index]) {
-        parser->resetStream(xRefTable->offset(index));
+        parser->seek(xRefTable->offset(index));
         shared_ptr<IndirectObject> indirect(parser->parseIndirectObject());
         if (index != indirect->index())
             throw Parser::ParseError("indirect object index mismatch");
         objects[index] = indirect;
     }
     
-    return objects[index];
+    return objects[index];*/
 }
 

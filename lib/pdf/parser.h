@@ -56,34 +56,11 @@ public:
     };
 
     Parser(Strigi::StreamBase<char> *stream);
-    
-    void skipWhitespaceAndComments();
+    int64_t size() const;
+    void seek(int64_t);
+    void findBackwards(const char *needle);
     char getChar();
-    void skipCommentBody();
     void putChar();
-    void fillBuffer(int minChars);
-    static bool isSpace(char c);
-    shared_ptr<IndirectObject> parseIndirectObject();
-    int parseSimpleNumber();
-    void checkKeyword(const char* keyword);
-    Object* parseObject();
-    Dictionary* parseDictionary();
-    Name* parseName();
-    char getHexChar();
-    static char fromHex(char c);
-    static bool isRegular(char c);
-    static bool isDelimiter(char c);
-    Number* parseNumber();
-    Stream* parseStream(Dictionary* dict);
-    String* parseLiteralString();
-    int64_t currentPosition();
-    int64_t fileSize();
-    Object* parseNumberOrReference();
-    void resetStream(int64_t position);
-    Array* parseArray();
-    char getOctalChar();
-    String* parseHexString();
-    void findBackwards(const char* needle);
 
     class ConstIterator {
     public:
@@ -106,8 +83,6 @@ public:
     ConstIterator end();
 
 private:
-    const char *buffer, *pos, *bufEnd;
-    int64_t bufferStart;
     Strigi::StreamBase<char> *stream;
 };
 
