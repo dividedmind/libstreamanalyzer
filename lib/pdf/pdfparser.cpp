@@ -20,6 +20,7 @@
 #include <math.h>
 #include <sstream>
 #include <strigi/subinputstream.h>
+#include <strigi/kmpsearcher.h>
 
 #include "dictionary.h"
 #include "name.h"
@@ -39,18 +40,9 @@ PdfParser::PdfParser() :streamhandler(0), texthandler(0), buffer(0) {
 Strigi::StreamStatus
 PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     this->stream = stream;
-    stream->reset(0);
-
-    try {
-        forever parseIndirectObject();
-    } catch (Strigi::StreamStatus s) {}
-    catch (ParseError err) {
-        stream->reset(bufferStart + (pos - buffer));
-        std::stringstream ss;
-        ss << err.what() << "; file position: " << stream->position();
-        throw ParseError(ss.str());
-    };
     
+    findStartXRef();
+
     this->stream = 0;
     return stream->status();
 }
@@ -636,5 +628,36 @@ Pdf::String *PdfParser::parseHexString()
             throw ParseError("expected hexadecimal number");
         }
         str += current + r;
+    }
+}
+
+/**
+ * Find the startxref section at the end of file.
+ */
+void PdfParser::findStartXRef()
+{
+    int wrap = 32;
+    const char *buffer;
+    
+    Strigi::KmpSearcher searcher("startxref");
+    stream->reset(stream->size());
+    
+    forever {
+        stream->reset(stream->size() - wrap);
+        stream->read(buffer, wrap, wrap);
+        const char *result = searcher.search(buffer, wrap);
+        if (result) {
+            int64_t position = stream->size() - wrap + result - buffer;
+            bufferStart = position;
+            stream->reset(position);
+            buffer = bufEnd = pos = 0;
+            return;
+        } else {
+            wrap *= 2;
+            if (wrap > stream->size()) {
+                wrap = stream->size();
+            } else if (wrap == stream->size())
+                throw ParseError("couldn't find xrefstart");
+        }
     }
 }
