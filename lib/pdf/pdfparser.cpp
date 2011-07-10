@@ -371,10 +371,10 @@ Pdf::Number *PdfParser::parseNumber()
     int integral = 0, mantissa = 0;
     
     switch (getChar()) {
-        case '+':
-            break;
         case '-':
             positive = false;
+        case '+':
+            break;
         default:
             putChar();
     }
