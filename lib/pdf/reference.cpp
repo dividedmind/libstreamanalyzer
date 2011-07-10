@@ -23,3 +23,8 @@
 using namespace Pdf;
 
 Reference::Reference(int number, int generation): number(number), generation(generation) {}
+
+void Reference::pretty(std::ostream& stream) const
+{
+    stream << "$(" << number << ", " << generation << ")";
+}

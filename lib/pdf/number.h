@@ -41,6 +41,8 @@ private:
     Type type;
     int intValue;
     double realValue;
+    
+    virtual void pretty(std::ostream& stream) const;
 };
 
 }

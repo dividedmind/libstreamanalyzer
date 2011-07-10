@@ -22,3 +22,7 @@
 
 using namespace Pdf;
 
+void Name::pretty(std::ostream& stream) const
+{
+    stream << "'" << *static_cast<const std::string *>(this) << "'";
+}

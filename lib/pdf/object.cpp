@@ -21,3 +21,8 @@
 
 using namespace Pdf;
 
+std::ostream& Pdf::operator<<(std::ostream& stream, const Pdf::Object& object)
+{
+    object.pretty(stream);
+    return stream;
+}

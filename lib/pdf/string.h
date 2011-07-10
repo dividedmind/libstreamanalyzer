@@ -31,6 +31,9 @@ class String : public Pdf::Object, public std::string
 {
 public:
     String(const std::string &s) : std::string(s) {}
+    
+private:
+    virtual void pretty(std::ostream& stream) const;
 };
 
 }

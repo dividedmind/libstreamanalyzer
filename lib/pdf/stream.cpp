@@ -20,3 +20,7 @@
 
 #include "stream.h"
 
+void Pdf::Stream::pretty(std::ostream& stream) const
+{
+    stream << "#stream<" << *dict.get() << ">";
+}

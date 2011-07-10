@@ -33,6 +33,8 @@ public:
     
 private:
     int number, generation;
+    
+    virtual void pretty(std::ostream& stream) const;
 };
 
 }

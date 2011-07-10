@@ -18,3 +18,15 @@
 */
 
 #include "dictionary.h"
+
+void Pdf::Dictionary::pretty(std::ostream& stream) const
+{
+    stream << "{";
+    for (const_iterator it = begin(); it != end();) {
+        stream << "'" << it->first << "': " << *it->second;
+        if ((++it) != end())
+            stream << ", ";
+    }
+    
+    stream << "}";
+}

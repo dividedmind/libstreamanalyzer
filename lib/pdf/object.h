@@ -19,6 +19,7 @@
 
 #ifndef PDF_OBJECT_H
 #define PDF_OBJECT_H
+#include <iostream>
 
 namespace Pdf {
 
@@ -26,8 +27,14 @@ class Object
 {
 public:
     virtual ~Object() {}
+
+protected:
+    virtual void pretty(std::ostream &stream) const = 0;
+    
+    friend std::ostream &operator <<(std::ostream &stream, const Object &object);
 };
 
+std::ostream &operator <<(std::ostream &stream, const Pdf::Object &object);
 }
 
 #endif // PDF_OBJECT_H

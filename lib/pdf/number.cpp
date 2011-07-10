@@ -41,3 +41,11 @@ Number::operator int() const
     else
         return static_cast<int>(realValue);
 }
+
+void Number::pretty(std::ostream& stream) const
+{
+    if (type == Int)
+        stream << intValue;
+    else
+        stream << realValue;
+}

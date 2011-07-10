@@ -38,6 +38,8 @@ public:
 private:
     boost::shared_ptr<Dictionary> dict;
     boost::shared_ptr< Strigi::StreamBase<char> > stream;
+    
+    virtual void pretty(std::ostream& stream) const;
 };
 
 }

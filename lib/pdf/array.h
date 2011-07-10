@@ -31,6 +31,8 @@ namespace Pdf {
 
 class Array : public Object, public std::vector< boost::shared_ptr<Object> >
 {
+protected:
+    virtual void pretty(std::ostream& stream) const;
 };
 
 }

@@ -18,3 +18,15 @@
 */
 
 #include "array.h"
+
+void Pdf::Array::pretty(std::ostream& stream) const
+{
+    stream << "[";
+    for (const_iterator it = begin(); it != end();) {
+        stream << *it->get();
+        if (++it != end())
+            stream << ", ";
+    }
+    
+    stream << "]";
+}

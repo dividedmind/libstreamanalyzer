@@ -53,7 +53,10 @@ PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     if (getChar() != '<' || getChar() != '<')
         throw ParseError("expected trailer dictionary");
     
+    
     trailer = boost::shared_ptr<Pdf::Dictionary>(parseDictionary());
+    
+    std::cerr << *trailer.get();
 
     this->stream = 0;
     return stream->status();
