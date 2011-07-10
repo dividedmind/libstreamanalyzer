@@ -17,21 +17,30 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "dictionary.h"
+#include "xreftable.h"
+#include "pdfparser.h"
 
-const Pdf::Object& Pdf::Dictionary::get(const std::string& key) const
+using namespace Pdf;
+
+void XRefTable::parse(PdfParser* parser)
 {
-    return *at(key);
+    parser->checkKeyword("xref");
+    int index = parser->parseSimpleNumber();
+    int count = parser->parseSimpleNumber();
+    
+    for (; count; --count) {
+        int offset = parser->parseSimpleNumber();
+        int generation = parser->parseSimpleNumber();
+        parser->skipWhitespaceAndComments();
+        if (parser->getChar() == 'n')
+            at(index) = std::pair<int, int>(generation, offset);
+        index++;
+    }
 }
 
-void Pdf::Dictionary::pretty(std::ostream& stream) const
+std::ostream& Pdf::operator<<(std::ostream& stream, const Pdf::XRefTable& table)
 {
-    stream << "{";
-    for (const_iterator it = begin(); it != end();) {
-        stream << "'" << it->first << "': " << *it->second;
-        if ((++it) != end())
-            stream << ", ";
-    }
-    
-    stream << "}";
+    for (int i = 0; i < table.size(); i++)
+        stream << i << '\t' << table[i].first << '\t' << table[i].second << std::endl;
+    return stream;
 }

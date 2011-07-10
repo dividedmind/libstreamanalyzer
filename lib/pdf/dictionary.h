@@ -31,6 +31,9 @@ namespace Pdf {
 
 class Dictionary : public Pdf::Object, public std::map< std::string, boost::shared_ptr<Pdf::Object> >
 {
+public:
+    const Pdf::Object &get(const std::string &key) const;
+
 private:
     virtual void pretty(std::ostream& stream) const;
 };

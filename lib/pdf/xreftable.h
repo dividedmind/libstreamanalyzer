@@ -17,21 +17,25 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "dictionary.h"
+#ifndef PDF_XREFTABLE_H
+#define PDF_XREFTABLE_H
 
-const Pdf::Object& Pdf::Dictionary::get(const std::string& key) const
-{
-    return *at(key);
+#include <vector>
+#include <iostream>
+
+class PdfParser;
+
+namespace Pdf {
+//
+
+class XRefTable : public std::vector< std::pair<int, int> > {
+public:
+    XRefTable(int size) : std::vector< std::pair<int, int> >(size) {}
+    void parse(PdfParser *parser);
+};
+
+std::ostream &operator <<(std::ostream &stream, const XRefTable &table);
+
 }
 
-void Pdf::Dictionary::pretty(std::ostream& stream) const
-{
-    stream << "{";
-    for (const_iterator it = begin(); it != end();) {
-        stream << "'" << it->first << "': " << *it->second;
-        if ((++it) != end())
-            stream << ", ";
-    }
-    
-    stream << "}";
-}
+#endif // PDF_XREFTABLE_H

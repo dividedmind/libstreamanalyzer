@@ -20,6 +20,7 @@
 #ifndef PDF_OBJECT_H
 #define PDF_OBJECT_H
 #include <iostream>
+#include <typeinfo>
 
 namespace Pdf {
 

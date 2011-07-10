@@ -29,6 +29,7 @@
 #include "reference.h"
 #include "array.h"
 #include "string.h"
+#include "xreftable.h"
 
 #include "pdfparser.h"
 
@@ -55,8 +56,13 @@ PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     
     
     trailer = boost::shared_ptr<Pdf::Dictionary>(parseDictionary());
+    if (trailer->count("Prev"))
+        std::cerr << "PdfParser warning: multiple xref tables not yet supported" << std::endl;
     
-    std::cerr << *trailer.get();
+    xRefTable = boost::shared_ptr<Pdf::XRefTable>(new Pdf::XRefTable(dynamic_cast<const Pdf::Number &>(trailer->get("Size"))));
+    resetStream(startXRef);
+    xRefTable->parse(this);
+    std::cerr << *xRefTable;
 
     this->stream = 0;
     return stream->status();

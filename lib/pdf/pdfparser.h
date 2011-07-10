@@ -33,6 +33,7 @@ namespace Pdf {
     class Stream;
     class Array;
     class String;
+    class XRefTable;
 };
 
 class PdfParser {
@@ -99,6 +100,9 @@ private:
     std::vector< boost::shared_ptr<Pdf::Object> > objects;
     int startXRef;
     boost::shared_ptr<Pdf::Dictionary> trailer;
+    boost::shared_ptr<Pdf::XRefTable> xRefTable;
+    
+    friend class Pdf::XRefTable;
 
 public:
     PdfParser();
