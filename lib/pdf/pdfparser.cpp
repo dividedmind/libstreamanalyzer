@@ -34,7 +34,8 @@
 
 #define forever for(;;)
 
-PdfParser::PdfParser() :streamhandler(0), texthandler(0), buffer(0) {
+PdfParser::PdfParser() :streamhandler(0), texthandler(0), 
+buffer(0), pos(0), bufEnd(0), bufferStart(0) {
 }
 
 Strigi::StreamStatus
@@ -42,6 +43,7 @@ PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     this->stream = stream;
     
     findStartXRef();
+    throw ParseError("found startxref");
 
     this->stream = 0;
     return stream->status();
@@ -468,12 +470,17 @@ Pdf::Object *PdfParser::parseNumberOrReference()
  */
 void PdfParser::resetStream(int64_t position)
 {
+    pos = buffer + position - bufferStart;
     if (position < bufferStart) {
         stream->reset(position);
         bufferStart = stream->position();
         bufEnd = pos = buffer;
-    } else {
-        pos = buffer + position - bufferStart;
+    } else if (pos > bufEnd) {
+        bufferStart = bufEnd - buffer + bufferStart;
+        stream->reset(bufferStart);
+        stream->skip(pos - bufEnd);
+        bufferStart += pos - bufEnd;
+        bufEnd = pos = buffer;
     }
 }
 
@@ -637,20 +644,16 @@ Pdf::String *PdfParser::parseHexString()
 void PdfParser::findStartXRef()
 {
     int wrap = 32;
-    const char *buffer;
     
     Strigi::KmpSearcher searcher("startxref");
-    stream->reset(stream->size());
-    
+
     forever {
-        stream->reset(stream->size() - wrap);
-        stream->read(buffer, wrap, wrap);
-        const char *result = searcher.search(buffer, wrap);
+        resetStream(stream->size() - wrap);
+        fillBuffer(wrap);
+        const char *result = searcher.search(buffer, bufEnd - buffer);
         if (result) {
-            int64_t position = stream->size() - wrap + result - buffer;
-            bufferStart = position;
-            stream->reset(position);
-            buffer = bufEnd = pos = 0;
+            pos = bufEnd = buffer;
+            resetStream(bufferStart + result - buffer);
             return;
         } else {
             wrap *= 2;
