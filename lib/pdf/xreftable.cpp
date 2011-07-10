@@ -17,13 +17,21 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+
 #include "xreftable.h"
 #include "parser.h"
 
 using namespace Pdf;
+using namespace std;
 
 void XRefTable::parse(Pdf::Parser* parser)
 {
+    copy(parser->here(), parser->end(), ostream_iterator<char>(cerr, ""));
+/*    Parser::ConstIterator it = parser->current();
+    
     parser->checkKeyword("xref");
     int index = parser->parseSimpleNumber();
     int count = parser->parseSimpleNumber();
@@ -38,12 +46,12 @@ void XRefTable::parse(Pdf::Parser* parser)
         if (parser->getChar() == 'n')
             at(index) = std::pair<int, int>(generation, offset);
         index++;
-    }
+    }*/
 }
 
 std::ostream& Pdf::operator<<(std::ostream& stream, const Pdf::XRefTable& table)
 {
-    for (int i = 0; i < table.size(); i++)
+    for (unsigned i = 0; i < table.size(); i++)
         stream << i << '\t' << table[i].first << '\t' << table[i].second << std::endl;
     return stream;
 }

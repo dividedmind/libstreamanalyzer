@@ -20,6 +20,7 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
+#include <iterator>
 #include <boost/shared_ptr.hpp>
 #include <strigi/streambase.h>
 
@@ -27,6 +28,7 @@ namespace Pdf {
 //
 
 using namespace boost;
+using namespace std;
 
 class Object;
 class Dictionary;
@@ -82,6 +84,26 @@ public:
     char getOctalChar();
     String* parseHexString();
     void findBackwards(const char* needle);
+
+    class ConstIterator {
+    public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef const char value_type;
+        typedef int64_t difference_type;
+        typedef const char *pointer;
+        typedef const char &reference;
+        ConstIterator(Parser *parent, int position);
+        char operator++(int);
+        char operator++();        
+        char operator*() const;
+        bool operator !=(const ConstIterator &other) const;
+        
+    private:
+        Parser *parent;
+        int position;
+    };
+    ConstIterator here();
+    ConstIterator end();
 
 private:
     const char *buffer, *pos, *bufEnd;

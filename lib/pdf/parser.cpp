@@ -668,3 +668,45 @@ int64_t Parser::fileSize()
 {
     return stream->size();
 }
+
+Parser::ConstIterator::ConstIterator(Parser* parent, int position) : parent(parent), position(position) {}
+
+char Parser::ConstIterator::operator++(int)
+{
+    const char c = parent->getChar();
+    ++(*this);
+    return c;
+}
+
+char Parser::ConstIterator::operator++()
+{
+    if (parent->currentPosition() != position)
+        parent->resetStream(position);
+    
+    return parent->getChar();
+}
+
+char Parser::ConstIterator::operator*() const
+{
+    if (parent->currentPosition() != position)
+        parent->resetStream(position);
+
+    char c = parent->getChar();
+    parent->putChar();
+    return c;
+}
+
+bool Parser::ConstIterator::operator!=(const Pdf::Parser::ConstIterator& other) const
+{
+    return other.parent != parent || other.position != position;
+}
+
+Parser::ConstIterator Parser::end()
+{
+    return ConstIterator(this, fileSize());
+}
+
+Parser::ConstIterator Parser::here()
+{
+    return ConstIterator(this, currentPosition());
+}
