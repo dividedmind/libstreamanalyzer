@@ -23,15 +23,15 @@
 #include <vector>
 #include <iostream>
 
-class PdfParser;
-
 namespace Pdf {
 //
+
+class Parser;
 
 class XRefTable : public std::vector< std::pair<int, int> > {
 public:
     XRefTable(int size) : std::vector< std::pair<int, int> >(size) {}
-    void parse(PdfParser *parser);
+    void parse(Pdf::Parser* parser);
 };
 
 std::ostream &operator <<(std::ostream &stream, const XRefTable &table);

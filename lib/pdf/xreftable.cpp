@@ -18,11 +18,11 @@
 */
 
 #include "xreftable.h"
-#include "pdfparser.h"
+#include "parser.h"
 
 using namespace Pdf;
 
-void XRefTable::parse(PdfParser* parser)
+void XRefTable::parse(Pdf::Parser* parser)
 {
     parser->checkKeyword("xref");
     int index = parser->parseSimpleNumber();

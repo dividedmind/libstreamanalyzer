@@ -20,22 +20,7 @@
 #ifndef PDFPARSER_H
 #define PDFPARSER_H
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
-
 #include <strigi/streambase.h>
-
-namespace Pdf {
-    class Object;
-    class Dictionary;
-    class Name;
-    class Number;
-    class Stream;
-    class Array;
-    class String;
-    class XRefTable;
-    class Reference;
-};
 
 class PdfParser {
 public:
@@ -50,61 +35,10 @@ public:
         virtual Strigi::StreamStatus handle(const std::string& s) = 0;
     };
     
-    class ParseError : public std::exception {
-    public:
-        ParseError(const std::string &msg) : message(msg) {}
-        virtual ~ParseError() throw() {}
-        
-        const char *what() const throw() {
-            return message.c_str();
-        }
-        
-    private:
-        std::string message;
-    };
     
 private:
     StreamHandler *streamhandler;
     TextHandler *texthandler;
-
-    Strigi::StreamBase<char> *stream;
-    const char *buffer, *pos, *bufEnd;
-    int64_t bufferStart;
-
-    void skipWhitespaceAndComments();
-    char getChar();
-    void skipCommentBody();
-    void putChar();
-    void fillBuffer(int minChars);
-    static bool isSpace(char c);
-    void parseIndirectObject();
-    int parseSimpleNumber();
-    void checkKeyword(const char* keyword);
-    Pdf::Object* parseObject();
-    Pdf::Dictionary* parseDictionary();
-    Pdf::Name* parseName();
-    char getHexChar();
-    static char fromHex(char c);
-    static bool isRegular(char c);
-    static bool isDelimiter(char c);
-    Pdf::Number* parseNumber();
-    Pdf::Stream* parseStream(Pdf::Dictionary* dict);
-    Pdf::String* parseLiteralString();
-    int64_t currentPosition();
-    Pdf::Object* parseNumberOrReference();
-    void resetStream(int64_t position);
-    Pdf::Array* parseArray();
-    char getOctalChar();
-    Pdf::String* parseHexString();
-    void findBackwards(const char* needle);
-    boost::shared_ptr<Pdf::Object> dereference(Pdf::Reference *ref);
-    
-    std::vector< boost::shared_ptr<Pdf::Object> > objects;
-    int startXRef;
-    boost::shared_ptr<Pdf::Dictionary> trailer;
-    boost::shared_ptr<Pdf::XRefTable> xRefTable;
-    
-    friend class Pdf::XRefTable;
 
 public:
     PdfParser();
@@ -113,7 +47,7 @@ public:
      * @arg file Stream representing the file to be parsed.
      * @return Stream status of the file. On successful parsing it should be @ref Strigi::Eof.
      */
-    Strigi::StreamStatus parse(Strigi::StreamBase< char >* stream) throw (ParseError);
+    Strigi::StreamStatus parse(Strigi::StreamBase< char >* stream);
     void setStreamHandler(StreamHandler* handler) { streamhandler = handler; }
     void setTextHandler(TextHandler* handler) { texthandler = handler; }
 };

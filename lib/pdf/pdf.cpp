@@ -19,6 +19,7 @@
  */
 #include <strigi/strigiconfig.h>
 #include "pdfparser.h"
+#include "parser.h"
 #include "fileinputstream.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -83,7 +84,7 @@ main(int argc, char** argv) {
         FileInputStream file(argv[i]);
         try {
             StreamStatus r = parser.parse(&file);
-        } catch (PdfParser::ParseError error) {
+        } catch (Pdf::Parser::ParseError error) {
             std::cout << "error in " << argv[i] << ": " << error.what() << std::endl;
             const char *buf;
             file.read(buf, 0, 1024);
