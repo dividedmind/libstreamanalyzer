@@ -226,8 +226,8 @@ Pdf::Object *PdfParser::parseObject()
                     return parseStream(dict);
                 else
                     return dict;
-            }
-            // fall through to default
+            } else
+                return parseHexString();
         default:
             throw ParseError("unknown object type");
         case '/':
@@ -308,12 +308,24 @@ Pdf::Name *PdfParser::parseName()
 char PdfParser::getHexChar()
 {
     char result = fromHex(getChar());
-    return result * 16 + fromHex(getChar());
+    
+    if (result == -1) {
+        putChar();
+        throw ParseError("expected hexadecimal number");
+    }
+    
+    char c = fromHex(getChar());
+    if (c == -1) {
+        putChar();
+        throw ParseError("expected hexadecimal number");
+    }
+    
+    return result * 16 + c;
 }
 
 /**
  * Interpret the argument as a hexadecimal figure.
- * Throw a @ref ParseError if it isn't one.
+ * Return -1 if it isn't one.
  */
 char PdfParser::fromHex(char c)
 {
@@ -322,11 +334,8 @@ char PdfParser::fromHex(char c)
         return c - '0';
     else if (c >= 'a' && c <= 'f')
         return c - 'a' + 10;
-    else {
-        std::stringstream ss; 
-        ss << "expected a hex char, got '" << c << "'";
-        throw ParseError(ss.str());
-    }
+    else 
+        return -1;
 }
 
 /**
@@ -587,4 +596,39 @@ char PdfParser::getOctalChar()
     }
     
     return result;
+}
+
+/** 
+ * Parse a hex string.
+ * PDF spec section 7.3.4.3.
+ */
+Pdf::String *PdfParser::parseHexString()
+{
+    std::string str;
+    
+    forever {
+        char c = getChar();
+        if (c == '>')
+            return new Pdf::String(str);
+        
+        char current = fromHex(c);
+        if (current < 0) {
+            putChar();
+            throw ParseError("expected hexadecimal number");
+        }
+        
+        current *= 16;
+        
+        c = getChar();
+        
+        if (c == '>')
+            return new Pdf::String(str += c);
+        
+        char r = fromHex(c);
+        if (r < 0) {
+            putChar();
+            throw ParseError("expected hexadecimal number");
+        }
+        str += current + r;
+    }
 }

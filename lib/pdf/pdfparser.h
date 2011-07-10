@@ -93,6 +93,7 @@ private:
     void resetStream(int64_t position);
     Pdf::Array* parseArray();
     char getOctalChar();
+    Pdf::String* parseHexString();
     
     std::vector< boost::shared_ptr<Pdf::Object> > objects;
 
