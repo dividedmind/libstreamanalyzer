@@ -41,9 +41,19 @@ buffer(0), pos(0), bufEnd(0), bufferStart(0) {
 Strigi::StreamStatus
 PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     this->stream = stream;
+
+    resetStream(stream->size());
+    findBackwards("startxref");
+    checkKeyword("startxref");
+    startXRef = parseSimpleNumber();
     
-    findStartXRef();
-    throw ParseError("found startxref");
+    findBackwards("trailer");
+    checkKeyword("trailer");
+    skipWhitespaceAndComments();
+    if (getChar() != '<' || getChar() != '<')
+        throw ParseError("expected trailer dictionary");
+    
+    trailer = boost::shared_ptr<Pdf::Dictionary>(parseDictionary());
 
     this->stream = 0;
     return stream->status();
@@ -82,6 +92,11 @@ char PdfParser::getChar()
  */
 void PdfParser::fillBuffer(int minChars)
 {
+    if (bufEnd - pos >= minChars)
+        return;
+    if (bufEnd != pos)
+        stream->reset(currentPosition());
+
     bufferStart = stream->position();
     int readChars;
     if ((readChars = stream->read(buffer, minChars, 0)) < minChars)
@@ -639,28 +654,32 @@ Pdf::String *PdfParser::parseHexString()
 }
 
 /**
- * Find the startxref section at the end of file.
+ * Find a text backwards from the current position.
  */
-void PdfParser::findStartXRef()
+void PdfParser::findBackwards(const char *text)
 {
-    int wrap = 32;
+    int wrap = 4;
+    int64_t startPosition = currentPosition();
     
-    Strigi::KmpSearcher searcher("startxref");
+    Strigi::KmpSearcher searcher(text);
 
     forever {
-        resetStream(stream->size() - wrap);
+        resetStream(startPosition - wrap);
         fillBuffer(wrap);
-        const char *result = searcher.search(buffer, bufEnd - buffer);
-        if (result) {
+        const char *final = 0;
+        const char *result = buffer - 1;
+        while ((result = searcher.search(result + 1, bufEnd - result - 1)))
+            final = result;
+        if (final) {
             pos = bufEnd = buffer;
-            resetStream(bufferStart + result - buffer);
+            resetStream(bufferStart + final - buffer);
             return;
         } else {
             wrap *= 2;
-            if (wrap > stream->size()) {
-                wrap = stream->size();
-            } else if (wrap == stream->size())
-                throw ParseError("couldn't find xrefstart");
+            if (wrap > startPosition) {
+                wrap = startPosition;
+            } else if (wrap == startPosition)
+                throw ParseError("couldn't find keyword");
         }
     }
 }

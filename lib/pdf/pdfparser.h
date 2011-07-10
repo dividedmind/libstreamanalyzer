@@ -94,9 +94,11 @@ private:
     Pdf::Array* parseArray();
     char getOctalChar();
     Pdf::String* parseHexString();
-    void findStartXRef();
+    void findBackwards(const char* needle);
     
     std::vector< boost::shared_ptr<Pdf::Object> > objects;
+    int startXRef;
+    boost::shared_ptr<Pdf::Dictionary> trailer;
 
 public:
     PdfParser();
