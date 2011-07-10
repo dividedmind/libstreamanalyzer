@@ -25,6 +25,7 @@
 
 #include "array.h"
 #include "dictionary.h"
+#include "indirectobject.h"
 #include "name.h"
 #include "number.h"
 #include "reference.h"
@@ -40,35 +41,6 @@ using namespace Pdf;
 
 Parser::Parser(Strigi::StreamBase<char> *stream) : buffer(0), pos(0), bufEnd(0), bufferStart(0), stream(stream)
 {
-    resetStream(stream->size());
-    findBackwards("startxref");
-    checkKeyword("startxref");
-    startXRef = parseSimpleNumber();
-    
-    findBackwards("trailer");
-    checkKeyword("trailer");
-    skipWhitespaceAndComments();
-    if (getChar() != '<' || getChar() != '<')
-        throw ParseError("expected trailer dictionary");
-    
-    
-    trailer = boost::shared_ptr<Pdf::Dictionary>(parseDictionary());
-    if (trailer->count("Prev"))
-        std::cerr << "PdfParser warning: multiple xref tables not yet supported" << std::endl;
-    
-    int size = dynamic_cast<const Pdf::Number &>(trailer->get("Size"));
-    objects.resize(size);
-    xRefTable = boost::shared_ptr<Pdf::XRefTable>(new Pdf::XRefTable(size));
-    resetStream(startXRef);
-    xRefTable->parse(this);
-
-    boost::shared_ptr<Pdf::Object> root = trailer->at("Root");
-    if (Pdf::Reference *ref = dynamic_cast<Pdf::Reference *>(root.get()))
-        root = dereference(ref);
-
-    std::cerr << *root;
-    
-    this->stream = 0;
 }
 
 /**
@@ -167,7 +139,7 @@ void Parser::skipCommentBody()
  * Parse an indirect object and put it in the indirect object table.
  * PDF spec 7.3.10.
  */
-void Parser::parseIndirectObject()
+shared_ptr<IndirectObject> Parser::parseIndirectObject()
 {
     unsigned int objectNumber = parseSimpleNumber();
     unsigned int generationNumber = parseSimpleNumber();
@@ -177,12 +149,8 @@ void Parser::parseIndirectObject()
     
     checkKeyword("endobj");
     
-    if (objects.size() <= objectNumber)
-        objects.resize(objectNumber + 1);
-    else if (objects[objectNumber])
-        throw ParseError("duplicate object number"); // TODO handle multiple generations
-    
-    objects[objectNumber] = shared_ptr<Object>(object);
+    shared_ptr<IndirectObject> indirect(new IndirectObject(objectNumber, generationNumber, object));
+    return indirect;
 }
 
 /**
@@ -696,12 +664,7 @@ void Parser::findBackwards(const char *text)
     }
 }
 
-shared_ptr< Object > Parser::dereference(Reference* ref)
+int64_t Parser::fileSize()
 {
-    if (!objects[ref->index()]) {
-        resetStream(xRefTable->at(ref->index()).second);
-        (void) parseIndirectObject();
-    }
-    
-    return objects[ref->index()];
+    return stream->size();
 }

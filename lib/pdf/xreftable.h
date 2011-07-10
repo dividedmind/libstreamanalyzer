@@ -32,6 +32,7 @@ class XRefTable : public std::vector< std::pair<int, int> > {
 public:
     XRefTable(int size) : std::vector< std::pair<int, int> >(size) {}
     void parse(Pdf::Parser* parser);
+    int offset(int index) const;
 };
 
 std::ostream &operator <<(std::ostream &stream, const XRefTable &table);

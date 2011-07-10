@@ -17,16 +17,31 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "document.h"
+#ifndef PDF_INDIRECTOBJECT_H
+#define PDF_INDIRECTOBJECT_H
 
-#include "pdfparser.h"
+#include <boost/shared_ptr.hpp>
 
-PdfParser::PdfParser() :streamhandler(0), texthandler(0)
-{
+#include "object.h"
+
+using namespace boost;
+
+namespace Pdf {
+//
+
+class IndirectObject : public Object {
+public:
+    IndirectObject(int number, int generation, Object *object) : number(number), generation(generation), object(object) {}
+    int index() const { return number; }
+    
+private:
+    virtual void pretty(std::ostream& stream) const;
+    
+    int number;
+    int generation;
+    shared_ptr<Object> object;
+};
+
 }
 
-Strigi::StreamStatus
-PdfParser::parse(Strigi::StreamBase<char>* stream) {
-    Pdf::Document::from(stream);
-    return stream->status();
-}
+#endif // PDF_INDIRECTOBJECT_H

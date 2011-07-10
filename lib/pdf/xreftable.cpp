@@ -47,3 +47,8 @@ std::ostream& Pdf::operator<<(std::ostream& stream, const Pdf::XRefTable& table)
         stream << i << '\t' << table[i].first << '\t' << table[i].second << std::endl;
     return stream;
 }
+
+int XRefTable::offset(int index) const
+{
+    return at(index).second;
+}

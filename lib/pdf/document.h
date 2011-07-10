@@ -17,16 +17,41 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "document.h"
+#ifndef PDF_DOCUMENT_H
+#define PDF_DOCUMENT_H
 
-#include "pdfparser.h"
+#include <vector>
+#include <boost/shared_ptr.hpp>
 
-PdfParser::PdfParser() :streamhandler(0), texthandler(0)
-{
+#include <strigi/streambase.h>
+
+using namespace boost;
+
+namespace Pdf {
+//
+
+class Object;
+class Parser;
+class Dictionary;
+class XRefTable;
+class Reference;
+
+class Document {
+public:
+    static shared_ptr<Document> from(Strigi::StreamBase<char> *stream);
+    
+private:
+    Document(shared_ptr<Parser> parser);
+    
+    shared_ptr<Object> dereference(Reference* ref);
+    
+    shared_ptr<Parser> parser;
+    std::vector< shared_ptr<Object> > objects;
+    int startXRef;
+    shared_ptr<Dictionary> trailer;
+    shared_ptr<XRefTable> xRefTable;
+};
+
 }
 
-Strigi::StreamStatus
-PdfParser::parse(Strigi::StreamBase<char>* stream) {
-    Pdf::Document::from(stream);
-    return stream->status();
-}
+#endif // PDF_DOCUMENT_H

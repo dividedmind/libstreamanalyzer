@@ -17,16 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "document.h"
+#include "indirectobject.h"
 
-#include "pdfparser.h"
-
-PdfParser::PdfParser() :streamhandler(0), texthandler(0)
+void Pdf::IndirectObject::pretty(std::ostream& stream) const
 {
-}
-
-Strigi::StreamStatus
-PdfParser::parse(Strigi::StreamBase<char>* stream) {
-    Pdf::Document::from(stream);
-    return stream->status();
+    stream << "$(" << number << ", " << generation << ", " << *object << ")";
 }

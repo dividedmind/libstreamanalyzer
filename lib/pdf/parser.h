@@ -20,7 +20,6 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
-#include <vector>
 #include <boost/shared_ptr.hpp>
 #include <strigi/streambase.h>
 
@@ -38,6 +37,7 @@ class String;
 class Array;
 class Reference;
 class XRefTable;
+class IndirectObject;
 
 class Parser {
 public:
@@ -61,7 +61,7 @@ public:
     void putChar();
     void fillBuffer(int minChars);
     static bool isSpace(char c);
-    void parseIndirectObject();
+    shared_ptr<IndirectObject> parseIndirectObject();
     int parseSimpleNumber();
     void checkKeyword(const char* keyword);
     Object* parseObject();
@@ -75,25 +75,18 @@ public:
     Stream* parseStream(Dictionary* dict);
     String* parseLiteralString();
     int64_t currentPosition();
+    int64_t fileSize();
     Object* parseNumberOrReference();
     void resetStream(int64_t position);
     Array* parseArray();
     char getOctalChar();
     String* parseHexString();
     void findBackwards(const char* needle);
-    shared_ptr<Object> dereference(Reference *ref);
 
 private:
     const char *buffer, *pos, *bufEnd;
     int64_t bufferStart;
     Strigi::StreamBase<char> *stream;
-
-    std::vector< boost::shared_ptr<Object> > objects;
-    int startXRef;
-    boost::shared_ptr<Dictionary> trailer;
-    boost::shared_ptr<XRefTable> xRefTable;
-    
-    friend class XRefTable;
 };
 
 }
