@@ -30,6 +30,7 @@ class Reference : public Pdf::Object
 {
 public:
     Reference(int number, int generation);
+    int index() const { return number; }
     
 private:
     int number, generation;

@@ -59,11 +59,18 @@ PdfParser::parse(Strigi::StreamBase<char>* stream) throw (ParseError) {
     if (trailer->count("Prev"))
         std::cerr << "PdfParser warning: multiple xref tables not yet supported" << std::endl;
     
-    xRefTable = boost::shared_ptr<Pdf::XRefTable>(new Pdf::XRefTable(dynamic_cast<const Pdf::Number &>(trailer->get("Size"))));
+    int size = dynamic_cast<const Pdf::Number &>(trailer->get("Size"));
+    objects.resize(size);
+    xRefTable = boost::shared_ptr<Pdf::XRefTable>(new Pdf::XRefTable(size));
     resetStream(startXRef);
     xRefTable->parse(this);
-    std::cerr << *xRefTable;
 
+    boost::shared_ptr<Pdf::Object> root = trailer->at("Root");
+    if (Pdf::Reference *ref = dynamic_cast<Pdf::Reference *>(root.get()))
+        root = dereference(ref);
+
+    std::cerr << *root;
+    
     this->stream = 0;
     return stream->status();
 }
@@ -691,4 +698,14 @@ void PdfParser::findBackwards(const char *text)
                 throw ParseError("couldn't find keyword");
         }
     }
+}
+
+boost::shared_ptr< Pdf::Object > PdfParser::dereference(Pdf::Reference* ref)
+{
+    if (!objects[ref->index()]) {
+        resetStream(xRefTable->at(ref->index()).second);
+        (void) parseIndirectObject();
+    }
+    
+    return objects[ref->index()];
 }

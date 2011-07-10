@@ -29,6 +29,9 @@ void XRefTable::parse(PdfParser* parser)
     int count = parser->parseSimpleNumber();
     
     for (; count; --count) {
+        if (index == size())
+            break;
+        
         int offset = parser->parseSimpleNumber();
         int generation = parser->parseSimpleNumber();
         parser->skipWhitespaceAndComments();

@@ -34,6 +34,7 @@ namespace Pdf {
     class Array;
     class String;
     class XRefTable;
+    class Reference;
 };
 
 class PdfParser {
@@ -96,6 +97,7 @@ private:
     char getOctalChar();
     Pdf::String* parseHexString();
     void findBackwards(const char* needle);
+    boost::shared_ptr<Pdf::Object> dereference(Pdf::Reference *ref);
     
     std::vector< boost::shared_ptr<Pdf::Object> > objects;
     int startXRef;
