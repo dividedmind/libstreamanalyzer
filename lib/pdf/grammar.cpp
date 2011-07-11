@@ -38,7 +38,7 @@ simple_rule eol = qi::lit('\r') || qi::lit('\n');
 simple_rule whitespace = qi::char_("\t\n\f\r ") | qi::lit('\0');
 simple_rule delimiter = qi::char_("()<>[]{}/%");
 simple_rule regular = !whitespace >> !delimiter >> qi::char_;
-simple_rule comment = '%' >> *(qi::char_ - eol) >> eol;
+simple_rule comment = '%' >> *(!eol >> qi::char_) >> eol;
 simple_rule skipper = whitespace | comment;
 
 struct document : qi::grammar<Parser::ConstIterator, simple_rule>
@@ -52,6 +52,8 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         using qi::repeat;
         using qi::char_;
         using qi::eoi;
+        using qi::lexeme;
+        using qi::byte_;
         
         pdf = 
             *(*indirect_object >> xreftable >> trailer >> xrefpos) >> eoi;
@@ -64,11 +66,11 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         name_escape = 
             '#' > xdigit > xdigit;
         name = 
-            qi::lexeme['/' > *(name_escape | regular)];
+            lexeme['/' > *(name_escape | regular)];
         number = 
             qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
         stream = 
-            dictionary >> qi::lexeme["stream" > eol > *(!(eol >> lit("endstream")) > qi::byte_) > eol > "endstream"];
+            dictionary >> lexeme["stream" > eol > *(!(eol >> lit("endstream")) > byte_) > eol > "endstream"];
         reference = 
             int_ >> int_ >> 'R';
         array = 
@@ -80,7 +82,7 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         string = 
             literal_string | hex_string;
         hex_string = 
-            '<' > *(qi::xdigit) > '>';
+            '<' > *xdigit > '>';
         xreftable = 
             lit("xref") > int_ > int_ > eol > *xrefentry;
         xrefentry = 
@@ -111,9 +113,6 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
             error_stream << _4,
             throw_(construct<Parser::ParseError>(bind(&std::stringstream::str, error_stream)))
         ));
-        
-/*        qi::on_error<qi::fail>(pdf, 
-                               let(_a = _4) []);*/
     }
     
     std::stringstream error_stream;
@@ -123,9 +122,6 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
 
 bool parse(boost::shared_ptr<Parser> stream)
 {
-    
-    using qi::lit;
-    
     document pdf;
     Parser::ConstIterator it = stream->here();
     return qi::phrase_parse(it, stream->end(), pdf, skipper);

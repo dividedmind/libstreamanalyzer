@@ -82,15 +82,19 @@ main(int argc, char** argv) {
 
         // parse the file
         FileInputStream file(argv[i]);
+        StreamStatus r;
         try {
-            StreamStatus r = parser.parse(&file);
+            r = parser.parse(&file);
         } catch (Pdf::Parser::ParseError error) {
             std::cout << "error in " << argv[i] << ": " << error.what() << std::endl;
         }
         std::cout << "position: " << file.position();
         const char *buf;
-        file.read(buf, 32, 32);
-        std::cout << ", rest: " << std::endl << buf << std::endl;
+        int len = file.read(buf, 32, 32);
+        if (len)
+            std::cout << ", rest: " << std::endl << std::string(buf, len) << std::endl;
+        else
+            std::cout << "Whole input read." << std::endl;
     }
     return 0;
 }
