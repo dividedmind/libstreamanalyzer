@@ -19,8 +19,7 @@
 
 #include <boost/spirit/include/qi_alternative.hpp>
 #include <boost/spirit/include/qi_char_.hpp>
-#include <boost/spirit/include/qi_optional.hpp>
-#include <boost/spirit/include/qi_sequence.hpp>
+#include <boost/spirit/include/qi_sequential_or.hpp>
 
 #include "grammar.h"
 
@@ -28,7 +27,7 @@ using namespace boost::spirit::qi;
 namespace Pdf { namespace Grammar {
 //
 
-const rule<Parser::ConstIterator> newline = lit('\n') | (lit('\r') >> -lit('\n'));
+const rule<Parser::ConstIterator> newline = lit('\r') || lit('\n');
 const rule<Parser::ConstIterator> whitespace = char_("\t\n\f\r ") | lit('\0');
 
 }}
