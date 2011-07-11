@@ -26,6 +26,7 @@
 namespace Pdf { namespace Grammar {
 //
 extern const boost::spirit::qi::rule<Parser::ConstIterator> newline;
+extern const boost::spirit::qi::rule<Parser::ConstIterator> whitespace;
 } }
 
 #endif // PDF_GRAMMAR_H

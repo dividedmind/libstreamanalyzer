@@ -23,6 +23,8 @@
 #include <boost/spirit/include/qi_sequence.hpp>
 #include <boost/spirit/include/qi_optional.hpp>
 #include <boost/spirit/include/qi_eoi.hpp>
+#include <boost/spirit/include/qi_difference.hpp>
+#include <boost/spirit/include/qi_kleene.hpp>
 
 #include "parser.h"
 
@@ -72,9 +74,14 @@ bool Document::parseFooter()
     using qi::parse;
     using qi::eoi;
     using Grammar::newline;
+    using Grammar::whitespace;
 
     Parser::ConstIterator it = parser->here();
-    const qi::rule<Parser::ConstIterator, unsigned long()> footer = "startxref" >> newline >> ulong_ >> newline >> "%%EOF" >> -newline >> eoi;
+    const qi::rule<Parser::ConstIterator, unsigned long()> footer = 
+        *(whitespace - newline) >> newline >>
+        "startxref" >> newline >> 
+        ulong_ >> newline >> 
+        "%%EOF" >> -newline >> eoi;
     
     return qi::parse(it, parser->end(), footer, startXRef);
 }

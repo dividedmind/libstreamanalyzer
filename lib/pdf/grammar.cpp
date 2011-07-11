@@ -29,5 +29,6 @@ namespace Pdf { namespace Grammar {
 //
 
 const rule<Parser::ConstIterator> newline = lit('\n') | (lit('\r') >> -lit('\n'));
+const rule<Parser::ConstIterator> whitespace = char_("\t\n\f\r ") | lit('\0');
 
 }}
