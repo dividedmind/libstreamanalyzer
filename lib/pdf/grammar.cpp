@@ -18,13 +18,16 @@
 */
 
 #include <iostream>
+#include <sstream>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 
 #include "parser.h"
 #include "grammar.h"
 
 namespace qi = boost::spirit::qi;
 namespace qis = boost::spirit::standard;
+namespace phx = boost::phoenix;
 
 namespace Pdf { namespace Grammar {
 //
@@ -40,26 +43,50 @@ simple_rule skipper = whitespace | comment;
 
 struct document : qi::grammar<Parser::ConstIterator, simple_rule>
 {
-    document() : base_type(pdf)
+    document() : base_type(pdf, "pdf")
     {
         using qi::int_;
         using qi::lit;
         using qis::xdigit;
         
         pdf = +indirect_object;
-        indirect_object = int_ >> int_ >> "obj" >> object >> "endobj";
+        indirect_object = int_ > int_ > "obj" > object > "endobj";
         object = stream | dictionary | name | number;
-        dictionary = "<<" >> *(name >> object) >> ">>";
-        name_escape = '#' >> xdigit >> xdigit;
-        name = qi::lexeme['/' >> *(name_escape | regular)];
+        dictionary = "<<" > *(name > object) > ">>";
+        name_escape = '#' > xdigit > xdigit;
+        name = qi::lexeme['/' > *(name_escape | regular)];
         number = qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
-        stream = dictionary >> qi::lexeme["stream" >> eol >> *(!(eol >> lit("endstream")) >> qi::byte_) >> eol >> "endstream"];
+        stream = dictionary > qi::lexeme["stream" > eol > *(!(eol >> lit("endstream")) > qi::byte_) > eol > "endstream"];
+        
+        pdf.name("pdf");
+        indirect_object.name("indirect object");
+        object.name("object");
+        dictionary.name("dictionary");
+        name.name("name");
+        number.name("number");
+        stream.name("stream");
+        
+        using phx::ref;
+        using phx::val;
+        using phx::bind;
+        using phx::throw_;
+        using phx::construct;
+        using qi::_4;
+
+        qi::on_error<qi::fail>(pdf, (
+            error_stream << val("Expected "),
+            error_stream << _4,
+            throw_(construct<Parser::ParseError>(bind(&std::stringstream::str, error_stream)))
+        ));
+        
+/*        qi::on_error<qi::fail>(pdf, 
+                               let(_a = _4) []);*/
     }
     
+    std::stringstream error_stream;
     simple_rule name_escape;
     skipping_rule pdf, indirect_object, object, dictionary, name, number, stream;
 };
-
 
 bool parse(boost::shared_ptr<Parser> stream)
 {
@@ -67,7 +94,7 @@ bool parse(boost::shared_ptr<Parser> stream)
     using qi::lit;
     
     document pdf;
-    auto it = stream->here();
+    Parser::ConstIterator it = stream->here();
     return qi::phrase_parse(it, stream->end(), pdf, skipper);
 }
 
