@@ -45,5 +45,5 @@ void Pdf::Dictionary::pretty(std::ostream& stream) const
 
 namespace qi = boost::spirit::qi;
 namespace standard = boost::spirit::standard;
-const qi::rule<Pdf::Parser::ConstIterator> Pdf::Dictionary::parser =
-    standard::alnum >> *Pdf::Grammar::whitespace >> qi::lit(">>");
+const qi::rule<Pdf::Parser::ConstIterator, Pdf::Grammar::whitespace_type> Pdf::Dictionary::parser =
+    standard::alnum >> qi::lit(">>");

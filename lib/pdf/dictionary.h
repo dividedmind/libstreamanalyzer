@@ -29,6 +29,7 @@
 
 #include "object.h"
 #include "parser.h"
+#include "grammar.h"
 
 namespace Pdf {
 
@@ -36,7 +37,7 @@ class Dictionary : public Pdf::Object, public std::map< std::string, boost::shar
 {
 public:
     const Pdf::Object &get(const std::string &key) const;
-    static const boost::spirit::qi::rule<Parser::ConstIterator> parser;
+    static const boost::spirit::qi::rule<Parser::ConstIterator, Grammar::whitespace_type> parser;
 
 private:
     virtual void pretty(std::ostream& stream) const;

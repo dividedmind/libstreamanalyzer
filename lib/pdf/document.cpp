@@ -71,19 +71,16 @@ void Document::readFooter()
 bool Document::parseFooter()
 {
     using qi::ulong_;
-    using boost::phoenix::ref;
-    using qi::parse;
     using qi::eoi;
     using Grammar::newline;
     using Grammar::whitespace;
 
     Parser::ConstIterator it = parser->here();
-    const qi::rule<Parser::ConstIterator, unsigned long()> footer = 
-        Dictionary::parser >>
-        *(whitespace - newline) >> newline >>
+    const qi::rule<Parser::ConstIterator, unsigned long(), Pdf::Grammar::whitespace_type> footer = 
+        Dictionary::parser >> newline >>
         "startxref" >> newline >> 
         ulong_ >> newline >> 
         "%%EOF" >> -newline >> eoi;
     
-    return qi::parse(it, parser->end(), footer, startXRef);
+    return qi::phrase_parse(it, parser->end(), footer, Pdf::Grammar::whitespace, startXRef);
 }
