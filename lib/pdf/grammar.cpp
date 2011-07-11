@@ -51,9 +51,10 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         using qis::digit;
         using qi::repeat;
         using qi::char_;
+        using qi::eoi;
         
         pdf = 
-            *(indirect_object | xreftable);
+            *(*indirect_object >> xreftable >> trailer >> xrefpos) >> eoi;
         indirect_object = 
             int_ > int_ > "obj" > object > "endobj";
         object = 
@@ -84,6 +85,10 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
             lit("xref") > int_ > int_ > eol > *xrefentry;
         xrefentry = 
             repeat(10)[digit] > ' ' > repeat(5)[digit] > ' ' > char_("nf") > (lit(" \r") | lit(" \n") | lit("\r\n"));
+        trailer = 
+            "trailer" > dictionary;
+        xrefpos =
+            "startxref" > int_;
         
         pdf.name("pdf");
         indirect_object.name("indirect object");
@@ -113,7 +118,7 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
     
     std::stringstream error_stream;
     simple_rule name_escape, literal_string, string_escape, xrefentry;
-    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string, xreftable;
+    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string, xreftable, trailer, xrefpos;
 };
 
 bool parse(boost::shared_ptr<Parser> stream)
