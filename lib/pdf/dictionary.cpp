@@ -18,6 +18,11 @@
 */
 
 #include <boost/spirit/include/qi_string.hpp>
+#include <boost/spirit/include/qi_char_class.hpp>
+#include <boost/spirit/include/qi_sequence.hpp>
+#include <boost/spirit/include/qi_kleene.hpp>
+
+#include "grammar.h"
 
 #include "dictionary.h"
 
@@ -39,5 +44,6 @@ void Pdf::Dictionary::pretty(std::ostream& stream) const
 }
 
 namespace qi = boost::spirit::qi;
+namespace standard = boost::spirit::standard;
 const qi::rule<Pdf::Parser::ConstIterator> Pdf::Dictionary::parser =
-    qi::lit(">>");
+    standard::alnum >> *Pdf::Grammar::whitespace >> qi::lit(">>");
