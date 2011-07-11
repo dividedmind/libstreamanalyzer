@@ -42,7 +42,7 @@ int64_t Pdf::Parser::size() const
 char Pdf::Parser::getChar()
 {
     const char *buf;
-    stream->read(buf, 1, 0);
+    stream->read(buf, 1, 1);
     return *buf;
 }
 

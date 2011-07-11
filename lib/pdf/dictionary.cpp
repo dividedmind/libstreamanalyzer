@@ -17,13 +17,6 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <boost/spirit/include/qi_string.hpp>
-#include <boost/spirit/include/qi_char_class.hpp>
-#include <boost/spirit/include/qi_sequence.hpp>
-#include <boost/spirit/include/qi_kleene.hpp>
-
-#include "grammar.h"
-
 #include "dictionary.h"
 
 const Pdf::Object& Pdf::Dictionary::get(const std::string& key) const
@@ -42,8 +35,3 @@ void Pdf::Dictionary::pretty(std::ostream& stream) const
     
     stream << "}";
 }
-
-namespace qi = boost::spirit::qi;
-namespace standard = boost::spirit::standard;
-const qi::rule<Pdf::Parser::ConstIterator, Pdf::Grammar::RuleParser> Pdf::Dictionary::parser =
-    standard::alnum >> qi::lit(">>");

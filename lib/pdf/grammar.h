@@ -20,15 +20,13 @@
 #ifndef PDF_GRAMMAR_H
 #define PDF_GRAMMAR_H
 
-#include <boost/spirit/include/qi_rule.hpp>
-#include "parser.h"
+#include <boost/shared_ptr.hpp>
 
-namespace Pdf { namespace Grammar {
+namespace Pdf { 
+    class Parser;
+    namespace Grammar {
 //
-typedef boost::spirit::qi::rule<Pdf::Parser::ConstIterator> RuleParser;
-
-extern const RuleParser newline;
-extern const RuleParser whitespace;
+bool parse(boost::shared_ptr<Parser>);
 }}
 
 #endif // PDF_GRAMMAR_H

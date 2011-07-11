@@ -24,12 +24,8 @@
 #include <map>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <boost/proto/proto_fwd.hpp> // old spirit versions miss this include
-#include <boost/spirit/include/qi_rule.hpp>
 
 #include "object.h"
-#include "parser.h"
-#include "grammar.h"
 
 namespace Pdf {
 
@@ -37,7 +33,6 @@ class Dictionary : public Pdf::Object, public std::map< std::string, boost::shar
 {
 public:
     const Pdf::Object &get(const std::string &key) const;
-    static const boost::spirit::qi::rule<Parser::ConstIterator, Grammar::RuleParser> parser;
 
 private:
     virtual void pretty(std::ostream& stream) const;

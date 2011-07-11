@@ -40,8 +40,6 @@ public:
     
 private:
     Document(boost::shared_ptr<Parser> parser);
-    void readFooter();
-    bool parseFooter();
     
     boost::shared_ptr<Parser> parser;
     std::vector< boost::shared_ptr<Object> > objects;
