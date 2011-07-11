@@ -25,11 +25,11 @@
 #include <strigi/streambase.h>
 
 #include "object.h"
-#include "dictionary.h"
 
 namespace Pdf {
     
-
+class Dictionary;
+    
 class Stream : public Pdf::Object
 {
 public:

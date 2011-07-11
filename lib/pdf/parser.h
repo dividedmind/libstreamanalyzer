@@ -55,7 +55,6 @@ public:
     Parser(Strigi::StreamBase<char> *stream);
     int64_t size() const;
     void seek(int64_t);
-    void findBackwards(const char *needle);
     char getChar();
     void putChar();
 
