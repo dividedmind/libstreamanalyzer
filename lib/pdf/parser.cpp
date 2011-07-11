@@ -17,80 +17,114 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <iostream>
+#include <sstream>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+
+#include "streamwrapper.h"
+
 #include "parser.h"
 
-Pdf::Parser::Parser(Strigi::StreamBase<char> *stream) : stream(stream)
-{
-}
+namespace qi = boost::spirit::qi;
+namespace qis = boost::spirit::standard;
+namespace phx = boost::phoenix;
 
-void Pdf::Parser::seek(int64_t position)
+namespace Pdf { namespace Parser {
+//
+typedef qi::rule<StreamWrapper::Iterator> simple_rule;
+typedef qi::rule<StreamWrapper::Iterator, simple_rule> skipping_rule;
+
+simple_rule eol = qi::lit('\r') || qi::lit('\n');
+simple_rule whitespace = qi::char_("\t\n\f\r ") | qi::lit('\0');
+simple_rule delimiter = qi::char_("()<>[]{}/%");
+simple_rule regular = !whitespace >> !delimiter >> qi::char_;
+simple_rule comment = '%' >> *(!eol >> qi::char_) >> eol;
+simple_rule skipper = whitespace | comment;
+
+struct document : qi::grammar<StreamWrapper::Iterator, simple_rule>
 {
-    if (position == stream->position())
-        return;
+    document() : base_type(pdf, "pdf")
+    {
+        using qi::int_;
+        using qi::lit;
+        using qis::xdigit;
+        using qis::digit;
+        using qi::repeat;
+        using qi::char_;
+        using qi::eoi;
+        using qi::lexeme;
+        using qi::byte_;
+        
+        pdf = 
+            *(*indirect_object >> xreftable >> trailer >> xrefpos) >> eoi;
+        indirect_object = 
+            int_ > int_ > "obj" > object > "endobj";
+        object = 
+            stream | dictionary | name | reference | number | array | string;
+        dictionary = 
+            "<<" > *(name > object) > ">>";
+        name_escape = 
+            '#' > xdigit > xdigit;
+        name = 
+            lexeme['/' > *(name_escape | regular)];
+        number = 
+            qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
+        stream = 
+            dictionary >> lexeme["stream" > eol > *(!(eol >> lit("endstream")) > byte_) > eol > "endstream"];
+        reference = 
+            int_ >> int_ >> 'R';
+        array = 
+            '[' > *object > ']';
+        string_escape = 
+            '\\' >> -(char_("nrtbf()\\") | repeat(1, 3)[char_('0', '7')] | eol);
+        literal_string = 
+            '(' > *(literal_string | string_escape | ~lit(')')) > ')';
+        string = 
+            literal_string | hex_string;
+        hex_string = 
+            '<' > *xdigit > '>';
+        xreftable = 
+            lit("xref") > int_ > int_ > eol > *xrefentry;
+        xrefentry = 
+            repeat(10)[digit] > ' ' > repeat(5)[digit] > ' ' > char_("nf") > (lit(" \r") | lit(" \n") | lit("\r\n"));
+        trailer = 
+            "trailer" > dictionary;
+        xrefpos =
+            "startxref" > int_;
+        
+        pdf.name("pdf");
+        indirect_object.name("indirect object");
+        object.name("object");
+        dictionary.name("dictionary");
+        name.name("name");
+        number.name("number");
+        stream.name("stream");
+        xreftable.name("xreftable");
+        
+        using phx::ref;
+        using phx::val;
+        using phx::bind;
+        using phx::throw_;
+        using phx::construct;
+        using qi::_4;
+
+        qi::on_error<qi::fail>(pdf, (
+            error_stream << val("Expected "),
+            error_stream << _4,
+            throw_(construct<ParseError>(bind(&std::stringstream::str, error_stream)))
+        ));
+    }
     
-    if (position < stream->position())
-        stream->reset(position);
-    else
-        stream->skip(position - stream->position());
-}
+    std::stringstream error_stream;
+    simple_rule name_escape, literal_string, string_escape, xrefentry;
+    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string, xreftable, trailer, xrefpos;
+};
 
-int64_t Pdf::Parser::size() const
+bool parse(StreamWrapper::Iterator begin, StreamWrapper::Iterator end)
 {
-    return stream->size();
+    document pdf;
+    return qi::phrase_parse(begin, end, pdf, skipper);
 }
 
-char Pdf::Parser::getChar()
-{
-    const char *buf;
-    stream->read(buf, 1, 1);
-    return *buf;
-}
-
-void Pdf::Parser::putChar()
-{
-    stream->reset(stream->position() - 1);
-}
-
-Pdf::Parser::ConstIterator::ConstIterator(Parser* parent, int position) : parent(parent), position(position) {}
-
-Pdf::Parser::ConstIterator Pdf::Parser::ConstIterator::operator++(int)
-{
-    ConstIterator result(*this);
-    position++;
-    return result;
-}
-
-Pdf::Parser::ConstIterator &Pdf::Parser::ConstIterator::operator++()
-{
-    position++;
-    return *this;
-}
-
-char Pdf::Parser::ConstIterator::operator*() const
-{
-    parent->seek(position);
-
-    char c = parent->getChar();
-    parent->putChar();
-    return c;
-}
-
-bool Pdf::Parser::ConstIterator::operator==(const Pdf::Parser::ConstIterator& other) const
-{
-    return other.parent == parent && other.position == position;
-}
-
-bool Pdf::Parser::ConstIterator::operator!=(const Pdf::Parser::ConstIterator& other) const
-{
-    return !(*this == other);
-}
-
-Pdf::Parser::ConstIterator Pdf::Parser::end()
-{
-    return ConstIterator(this, size());
-}
-
-Pdf::Parser::ConstIterator Pdf::Parser::here()
-{
-    return ConstIterator(this, stream->position());
-}
+}}

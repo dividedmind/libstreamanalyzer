@@ -17,7 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "document.h"
+#include "streamwrapper.h"
+#include "parser.h"
 
 #include "pdfparser.h"
 
@@ -27,6 +28,7 @@ PdfParser::PdfParser() :streamhandler(0), texthandler(0)
 
 Strigi::StreamStatus
 PdfParser::parse(Strigi::StreamBase<char>* stream) {
-    Pdf::Document::from(stream);
+    Pdf::StreamWrapper wrapper(stream);
+    Pdf::Parser::parse(wrapper.begin(), wrapper.end());
     return stream->status();
 }

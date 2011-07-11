@@ -20,69 +20,27 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
-#include <iterator>
-#include <boost/shared_ptr.hpp>
-#include <strigi/streambase.h>
+#include <exception>
+
+#include "streamwrapper.h"
 
 namespace Pdf {
+
+namespace Parser {
 //
-
-class Object;
-class Dictionary;
-class Name;
-class Number;
-class Stream;
-class String;
-class Array;
-class Reference;
-class XRefTable;
-class IndirectObject;
-
-class Parser {
+class ParseError : public std::exception {
 public:
-    class ParseError : public std::exception {
-    public:
-        ParseError(const std::string &msg) : message(msg) {}
-        virtual ~ParseError() throw() {}
-        
-        const char *what() const throw() {
-            return message.c_str();
-        }
-    private:
-        std::string message;
-    };
-
-    Parser(Strigi::StreamBase<char> *stream);
-    int64_t size() const;
-    void seek(int64_t);
-    char getChar();
-    void putChar();
-
-    class ConstIterator {
-    public:
-        typedef std::forward_iterator_tag iterator_category;
-        typedef char value_type;
-        typedef int64_t difference_type;
-        typedef const char *pointer;
-        typedef const char &reference;
-        ConstIterator(Parser *parent, int position);
-        ConstIterator operator++(int);
-        ConstIterator &operator++();        
-        char operator*() const;
-        bool operator !=(const ConstIterator &other) const;
-        bool operator ==(const ConstIterator &other) const;
-        
-    private:
-        Parser *parent;
-        int position;
-    };
-    ConstIterator here();
-    ConstIterator end();
-
+    ParseError(const std::string &msg) : message(msg) {}
+    virtual ~ParseError() throw() {}
+    
+    const char *what() const throw() {
+        return message.c_str();
+    }
 private:
-    Strigi::StreamBase<char> *stream;
+    std::string message;
 };
 
-}
+bool parse(StreamWrapper::Iterator begin, StreamWrapper::Iterator end);
+}}
 
 #endif // PDF_PARSER_H
