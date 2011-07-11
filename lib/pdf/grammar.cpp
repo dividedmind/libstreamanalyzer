@@ -60,7 +60,9 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         reference = int_ >> int_ >> 'R';
         array = '[' > *object > ']';
         string_escape = '\\' >> -(qi::char_("nrtbf()\\") | qi::repeat(1, 3)[qi::char_('0', '7')] | eol);
-        string = '(' > *(string_escape | ~qi::lit(')')) > ')';
+        literal_string = '(' > *(literal_string | string_escape | ~qi::lit(')')) > ')';
+        string = literal_string | hex_string;
+        hex_string = '<' > *(qi::xdigit) > '>';
         
         pdf.name("pdf");
         indirect_object.name("indirect object");
@@ -88,8 +90,8 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
     }
     
     std::stringstream error_stream;
-    simple_rule name_escape, string, string_escape;
-    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array;
+    simple_rule name_escape, literal_string, string_escape;
+    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string;
 };
 
 bool parse(boost::shared_ptr<Parser> stream)
