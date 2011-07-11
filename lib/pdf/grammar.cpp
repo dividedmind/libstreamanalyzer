@@ -19,7 +19,6 @@
 
 #include <iostream>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/repository/include/qi_iter_pos.hpp>
 
 #include "parser.h"
 #include "grammar.h"
@@ -31,14 +30,14 @@ bool Grammar::parse(boost::shared_ptr<Parser> stream)
 {
     using namespace qi;
     
+    typedef rule<Parser::ConstIterator> simple_rule;
+    
     auto eol = lit('\r') || lit('\n');
     auto whitespace = char_("\t\n\f\r ") | lit('\0');
-    rule<Parser::ConstIterator> comment = '%' >> *(char_ - eol) >> eol;
-    
-    auto it = stream->here();
+    simple_rule comment = '%' >> *(char_ - eol) >> eol;
+    simple_rule skipper = whitespace | comment;
 
-    bool result = qi::parse(it, stream->end(), comment >> comment);
-    
-    return result;
+    auto it = stream->here();
+    return qi::phrase_parse(it, stream->end(), int_ >> int_, skipper);
 }
 }
