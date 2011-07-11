@@ -51,7 +51,7 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         
         pdf = +indirect_object;
         indirect_object = int_ > int_ > "obj" > object > "endobj";
-        object = stream | dictionary | name | reference | number | array;
+        object = stream | dictionary | name | reference | number | array | string;
         dictionary = "<<" > *(name > object) > ">>";
         name_escape = '#' > xdigit > xdigit;
         name = qi::lexeme['/' > *(name_escape | regular)];
@@ -59,6 +59,8 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         stream = dictionary >> qi::lexeme["stream" > eol > *(!(eol >> lit("endstream")) > qi::byte_) > eol > "endstream"];
         reference = int_ >> int_ >> 'R';
         array = '[' > *object > ']';
+        string_escape = '\\' >> -(qi::char_("nrtbf()\\") | qi::repeat(1, 3)[qi::char_('0', '7')] | eol);
+        string = '(' > *(string_escape | ~qi::lit(')')) > ')';
         
         pdf.name("pdf");
         indirect_object.name("indirect object");
@@ -86,7 +88,7 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
     }
     
     std::stringstream error_stream;
-    simple_rule name_escape;
+    simple_rule name_escape, string, string_escape;
     skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array;
 };
 
