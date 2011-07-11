@@ -24,8 +24,6 @@
 
 #include "object.h"
 
-using namespace boost;
-
 namespace Pdf {
 //
 
@@ -39,7 +37,7 @@ private:
     
     int number;
     int generation;
-    shared_ptr<Object> object;
+    boost::shared_ptr<Object> object;
 };
 
 }

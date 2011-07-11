@@ -20,7 +20,7 @@
 #include <strigi/strigiconfig.h>
 #include "pdfparser.h"
 #include "parser.h"
-#include "fileinputstream.h"
+#include <strigi/fileinputstream.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <iostream>

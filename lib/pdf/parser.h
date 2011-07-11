@@ -38,8 +38,6 @@ class Reference;
 class XRefTable;
 class IndirectObject;
 
-using namespace std;
-
 class Parser {
 public:
     class ParseError : public std::exception {

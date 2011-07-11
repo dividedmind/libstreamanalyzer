@@ -25,9 +25,9 @@
 #include "grammar.h"
 
 using namespace boost::spirit::qi;
-namespace Pdf {
+namespace Pdf { namespace Grammar {
 //
 
 const rule<Parser::ConstIterator> newline = lit('\n') | (lit('\r') >> -lit('\n'));
 
-}
+}}

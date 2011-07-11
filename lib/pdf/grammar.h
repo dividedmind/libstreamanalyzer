@@ -23,11 +23,9 @@
 #include <boost/spirit/include/qi_rule.hpp>
 #include "parser.h"
 
-namespace Pdf {
-using namespace boost::spirit::qi;
-
+namespace Pdf { namespace Grammar {
 //
-extern const rule<Parser::ConstIterator> newline;
-}
+extern const boost::spirit::qi::rule<Parser::ConstIterator> newline;
+} }
 
 #endif // PDF_GRAMMAR_H

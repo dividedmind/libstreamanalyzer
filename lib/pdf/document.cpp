@@ -30,6 +30,7 @@
 using namespace Pdf;
 
 namespace qi = boost::spirit::qi;
+using boost::shared_ptr;
 
 shared_ptr<Document> Document::from(Strigi::StreamBase< char >* stream)
 {
@@ -52,10 +53,10 @@ Document::Document(shared_ptr<Parser> parser) : parser(parser)
     Parser::ConstIterator it = parser->here();
     
     if (!qi::parse(it, parser->end(), 
-        "startxref" >> Pdf::newline >> ulong_, startxref))
+        "startxref" >> Grammar::newline >> ulong_, startxref))
         throw Parser::ParseError("parse error when parsing startxref");
     
-    cerr << startxref << endl;
+    std::cerr << startxref << std::endl;
 }
 
 shared_ptr<Object> Document::dereference(Reference* ref)

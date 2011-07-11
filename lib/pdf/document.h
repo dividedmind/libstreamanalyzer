@@ -28,8 +28,6 @@
 namespace Pdf {
 //
 
-using namespace boost;
-
 class Object;
 class Parser;
 class Dictionary;
@@ -38,18 +36,18 @@ class Reference;
 
 class Document {
 public:
-    static shared_ptr<Document> from(Strigi::StreamBase<char> *stream);
+    static boost::shared_ptr<Document> from(Strigi::StreamBase<char> *stream);
     
 private:
-    Document(shared_ptr<Parser> parser);
+    Document(boost::shared_ptr<Parser> parser);
     
-    shared_ptr<Object> dereference(Reference* ref);
+    boost::shared_ptr<Object> dereference(Reference* ref);
     
-    shared_ptr<Parser> parser;
-    std::vector< shared_ptr<Object> > objects;
+    boost::shared_ptr<Parser> parser;
+    std::vector< boost::shared_ptr<Object> > objects;
     int startXRef;
-    shared_ptr<Dictionary> trailer;
-    shared_ptr<XRefTable> xRefTable;
+    boost::shared_ptr<Dictionary> trailer;
+    boost::shared_ptr<XRefTable> xRefTable;
 };
 
 }
