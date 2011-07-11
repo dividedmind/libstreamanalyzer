@@ -40,12 +40,12 @@ public:
     
 private:
     Document(boost::shared_ptr<Parser> parser);
-    
-    boost::shared_ptr<Object> dereference(Reference* ref);
+    void readFooter();
+    bool parseFooter();
     
     boost::shared_ptr<Parser> parser;
     std::vector< boost::shared_ptr<Object> > objects;
-    int startXRef;
+    unsigned long startXRef;
     boost::shared_ptr<Dictionary> trailer;
     boost::shared_ptr<XRefTable> xRefTable;
 };
