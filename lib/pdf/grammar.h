@@ -20,7 +20,6 @@
 #ifndef PDF_GRAMMAR_H
 #define PDF_GRAMMAR_H
 
-#include <boost/spirit/include/support.hpp>
 #include <boost/spirit/include/qi_rule.hpp>
 #include "parser.h"
 
@@ -28,47 +27,8 @@ namespace Pdf { namespace Grammar {
 //
 typedef boost::spirit::qi::rule<Pdf::Parser::ConstIterator> RuleParser;
 
-RuleParser makeNewlineParser();
-RuleParser makeWhitespaceParser();
-
-BOOST_SPIRIT_DEFINE_TERMINALS(
-    (newline)
-    (whitespace)
-);
+extern const RuleParser newline;
+extern const RuleParser whitespace;
 }}
-
-namespace boost { namespace spirit {
-    template <>
-    struct use_terminal<qi::domain, Pdf::Grammar::tag::newline>
-    : mpl::true_ {};
-    
-    template <>
-    struct use_terminal<qi::domain, Pdf::Grammar::tag::whitespace>
-    : mpl::true_ {};
-}}
-
-namespace boost { namespace spirit { namespace qi
-{
-    template <typename Modifiers>
-    struct make_primitive<Pdf::Grammar::tag::newline, Modifiers>
-    {
-        typedef Pdf::Grammar::RuleParser result_type;
- 
-        result_type operator()(unused_type, unused_type) const {
-            return Pdf::Grammar::makeNewlineParser();
-        }
-    };
-
-    template <typename Modifiers>
-    struct make_primitive<Pdf::Grammar::tag::whitespace, Modifiers>
-    {
-        typedef Pdf::Grammar::RuleParser result_type;
- 
-        result_type operator()(unused_type, unused_type) const {
-            return Pdf::Grammar::makeWhitespaceParser();
-        }
-    };
-}}}
-
 
 #endif // PDF_GRAMMAR_H

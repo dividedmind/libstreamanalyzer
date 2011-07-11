@@ -27,13 +27,6 @@ using namespace boost::spirit::qi;
 namespace Pdf { namespace Grammar {
 //
 
-RuleParser makeNewlineParser()
-{
-    return lit('\r') || lit('\n');
-}
-
-RuleParser makeWhitespaceParser()
-{
-    return char_("\t\n\f\r ") | lit('\0');
-}
+const RuleParser newline = lit('\r') || lit('\n');
+const RuleParser whitespace = char_("\t\n\f\r ") | lit('\0');
 }}

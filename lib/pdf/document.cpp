@@ -76,11 +76,11 @@ bool Document::parseFooter()
     using Grammar::whitespace;
 
     Parser::ConstIterator it = parser->here();
-    const qi::rule<Parser::ConstIterator, unsigned long(), Pdf::Grammar::whitespace_type> footer = 
+    const qi::rule<Parser::ConstIterator, unsigned long(), Pdf::Grammar::RuleParser> footer = 
         Dictionary::parser >> newline >>
         "startxref" >> newline >> 
         ulong_ >> newline >> 
         "%%EOF" >> -newline >> eoi;
     
-    return qi::phrase_parse(it, parser->end(), footer, Pdf::Grammar::whitespace, startXRef);
+    return qi::phrase_parse(it, parser->end(), footer, whitespace, startXRef);
 }
