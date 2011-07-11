@@ -30,6 +30,7 @@
 
 #include "document.h"
 #include "grammar.h"
+#include "dictionary.h"
 
 using namespace Pdf;
 
@@ -78,6 +79,7 @@ bool Document::parseFooter()
 
     Parser::ConstIterator it = parser->here();
     const qi::rule<Parser::ConstIterator, unsigned long()> footer = 
+        Dictionary::parser >>
         *(whitespace - newline) >> newline >>
         "startxref" >> newline >> 
         ulong_ >> newline >> 
