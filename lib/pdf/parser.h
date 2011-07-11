@@ -66,8 +66,8 @@ public:
         typedef const char *pointer;
         typedef const char &reference;
         ConstIterator(Parser *parent, int position);
-        char operator++(int);
-        char operator++();        
+        ConstIterator operator++(int);
+        ConstIterator &operator++();        
         char operator*() const;
         bool operator !=(const ConstIterator &other) const;
         bool operator ==(const ConstIterator &other) const;

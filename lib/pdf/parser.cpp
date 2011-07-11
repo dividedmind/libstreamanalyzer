@@ -53,18 +53,17 @@ void Pdf::Parser::putChar()
 
 Pdf::Parser::ConstIterator::ConstIterator(Parser* parent, int position) : parent(parent), position(position) {}
 
-char Pdf::Parser::ConstIterator::operator++(int)
+Pdf::Parser::ConstIterator Pdf::Parser::ConstIterator::operator++(int)
 {
-    parent->seek(position++);
-    return parent->getChar();
+    ConstIterator result(*this);
+    position++;
+    return result;
 }
 
-char Pdf::Parser::ConstIterator::operator++()
+Pdf::Parser::ConstIterator &Pdf::Parser::ConstIterator::operator++()
 {
-    parent->seek(++position);
-    char c = parent->getChar();
-    parent->putChar();
-    return c;
+    position++;
+    return *this;
 }
 
 char Pdf::Parser::ConstIterator::operator*() const

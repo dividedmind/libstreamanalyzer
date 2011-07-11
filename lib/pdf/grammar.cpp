@@ -24,20 +24,49 @@
 #include "grammar.h"
 
 namespace qi = boost::spirit::qi;
+namespace qis = boost::spirit::standard;
 
-namespace Pdf {
-bool Grammar::parse(boost::shared_ptr<Parser> stream)
+namespace Pdf { namespace Grammar {
+//
+typedef qi::rule<Parser::ConstIterator> simple_rule;
+typedef qi::rule<Parser::ConstIterator, simple_rule> skipping_rule;
+
+simple_rule eol = qi::lit('\r') || qi::lit('\n');
+simple_rule whitespace = qi::char_("\t\n\f\r ") | qi::lit('\0');
+simple_rule delimiter = qi::char_("()<>[]{}/%");
+simple_rule regular = !whitespace >> !delimiter >> qi::char_;
+simple_rule comment = '%' >> *(qi::char_ - eol) >> eol;
+simple_rule skipper = whitespace | comment;
+
+struct document : qi::grammar<Parser::ConstIterator, simple_rule>
 {
-    using namespace qi;
+    document() : base_type(pdf)
+    {
+        using qi::int_;
+        using qi::lit;
+        using qis::xdigit;
+        
+        pdf = +indirect_object;
+        indirect_object = int_ >> int_ >> "obj" >> object >> "endobj";
+        object = dictionary | name | number;
+        dictionary = "<<" >> *(name >> object);
+        name_escape = '#' >> xdigit >> xdigit;
+        name = '/' >> *(name_escape | regular);
+        number = qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
+    }
     
-    typedef rule<Parser::ConstIterator> simple_rule;
-    
-    auto eol = lit('\r') || lit('\n');
-    auto whitespace = char_("\t\n\f\r ") | lit('\0');
-    simple_rule comment = '%' >> *(char_ - eol) >> eol;
-    simple_rule skipper = whitespace | comment;
+    skipping_rule pdf, indirect_object, object, dictionary, name, name_escape, number;
+};
 
+
+bool parse(boost::shared_ptr<Parser> stream)
+{
+    
+    using qi::lit;
+    
+    document pdf;
     auto it = stream->here();
-    return qi::phrase_parse(it, stream->end(), int_ >> int_, skipper);
+    return qi::phrase_parse(it, stream->end(), pdf, skipper);
 }
-}
+
+}}
