@@ -48,14 +48,16 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         
         pdf = +indirect_object;
         indirect_object = int_ >> int_ >> "obj" >> object >> "endobj";
-        object = dictionary | name | number;
-        dictionary = "<<" >> *(name >> object);
+        object = stream | dictionary | name | number;
+        dictionary = "<<" >> *(name >> object) >> ">>";
         name_escape = '#' >> xdigit >> xdigit;
-        name = '/' >> *(name_escape | regular);
+        name = qi::lexeme['/' >> *(name_escape | regular)];
         number = qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
+        stream = dictionary >> qi::lexeme["stream" >> eol >> *(!(eol >> lit("endstream")) >> qi::byte_) >> eol >> "endstream"];
     }
     
-    skipping_rule pdf, indirect_object, object, dictionary, name, name_escape, number;
+    simple_rule name_escape;
+    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream;
 };
 
 
