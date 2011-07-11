@@ -29,6 +29,8 @@ PdfParser::PdfParser() :streamhandler(0), texthandler(0)
 Strigi::StreamStatus
 PdfParser::parse(Strigi::StreamBase<char>* stream) {
     Pdf::StreamWrapper wrapper(stream);
-    Pdf::Parser::parse(wrapper.begin(), wrapper.end());
+    
+    if (!Pdf::Parser::findFooter(wrapper.begin(), wrapper.end()))
+        throw Pdf::Parser::ParseError("couldn't find footer");
     return stream->status();
 }

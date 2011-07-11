@@ -57,7 +57,7 @@ struct document : qi::grammar<StreamWrapper::Iterator, simple_rule>
         using qi::byte_;
         
         pdf = 
-            *(*indirect_object >> xreftable >> trailer >> xrefpos) >> eoi;
+            *(*indirect_object >> footer) >> eoi;
         indirect_object = 
             int_ > int_ > "obj" > object > "endobj";
         object = 
@@ -92,6 +92,8 @@ struct document : qi::grammar<StreamWrapper::Iterator, simple_rule>
             "trailer" > dictionary;
         xrefpos =
             "startxref" > int_;
+        footer =
+            xreftable >> trailer >> xrefpos;
         
         pdf.name("pdf");
         indirect_object.name("indirect object");
@@ -118,13 +120,23 @@ struct document : qi::grammar<StreamWrapper::Iterator, simple_rule>
     
     std::stringstream error_stream;
     simple_rule name_escape, literal_string, string_escape, xrefentry;
-    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string, xreftable, trailer, xrefpos;
+    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string, xreftable, trailer, xrefpos, footer;
 };
+
+document grammar;
 
 bool parse(StreamWrapper::Iterator begin, StreamWrapper::Iterator end)
 {
-    document pdf;
-    return qi::phrase_parse(begin, end, pdf, skipper);
+    return qi::phrase_parse(begin, end, grammar, skipper);
 }
 
+bool findFooter(StreamWrapper::Iterator begin, StreamWrapper::Iterator end)
+{
+    for (StreamWrapper::Iterator it = begin; it != end; ++it) {
+        StreamWrapper::Iterator current(it);
+        if (qi::phrase_parse(current, end, grammar.footer, skipper))
+            return true;
+    }
+    return false;
+}
 }}

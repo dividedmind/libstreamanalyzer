@@ -41,6 +41,7 @@ private:
 };
 
 bool parse(StreamWrapper::Iterator begin, StreamWrapper::Iterator end);
+bool findFooter(StreamWrapper::Iterator begin, StreamWrapper::Iterator end);
 }}
 
 #endif // PDF_PARSER_H

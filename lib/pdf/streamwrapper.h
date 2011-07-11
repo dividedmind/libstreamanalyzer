@@ -47,6 +47,7 @@ public:
         char operator*() const;
         bool operator !=(const Iterator &other) const;
         bool operator ==(const Iterator &other) const;
+        int pos() const { return position; }
         
     private:
         StreamWrapper *parent;
