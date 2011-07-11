@@ -48,21 +48,42 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         using qi::int_;
         using qi::lit;
         using qis::xdigit;
+        using qis::digit;
+        using qi::repeat;
+        using qi::char_;
         
-        pdf = +indirect_object;
-        indirect_object = int_ > int_ > "obj" > object > "endobj";
-        object = stream | dictionary | name | reference | number | array | string;
-        dictionary = "<<" > *(name > object) > ">>";
-        name_escape = '#' > xdigit > xdigit;
-        name = qi::lexeme['/' > *(name_escape | regular)];
-        number = qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
-        stream = dictionary >> qi::lexeme["stream" > eol > *(!(eol >> lit("endstream")) > qi::byte_) > eol > "endstream"];
-        reference = int_ >> int_ >> 'R';
-        array = '[' > *object > ']';
-        string_escape = '\\' >> -(qi::char_("nrtbf()\\") | qi::repeat(1, 3)[qi::char_('0', '7')] | eol);
-        literal_string = '(' > *(literal_string | string_escape | ~qi::lit(')')) > ')';
-        string = literal_string | hex_string;
-        hex_string = '<' > *(qi::xdigit) > '>';
+        pdf = 
+            *(indirect_object | xreftable);
+        indirect_object = 
+            int_ > int_ > "obj" > object > "endobj";
+        object = 
+            stream | dictionary | name | reference | number | array | string;
+        dictionary = 
+            "<<" > *(name > object) > ">>";
+        name_escape = 
+            '#' > xdigit > xdigit;
+        name = 
+            qi::lexeme['/' > *(name_escape | regular)];
+        number = 
+            qi::real_parser< double, qi::strict_real_policies<double> >() | int_;
+        stream = 
+            dictionary >> qi::lexeme["stream" > eol > *(!(eol >> lit("endstream")) > qi::byte_) > eol > "endstream"];
+        reference = 
+            int_ >> int_ >> 'R';
+        array = 
+            '[' > *object > ']';
+        string_escape = 
+            '\\' >> -(char_("nrtbf()\\") | repeat(1, 3)[char_('0', '7')] | eol);
+        literal_string = 
+            '(' > *(literal_string | string_escape | ~lit(')')) > ')';
+        string = 
+            literal_string | hex_string;
+        hex_string = 
+            '<' > *(qi::xdigit) > '>';
+        xreftable = 
+            lit("xref") > int_ > int_ > eol > *xrefentry;
+        xrefentry = 
+            repeat(10)[digit] > ' ' > repeat(5)[digit] > ' ' > char_("nf") > (lit(" \r") | lit(" \n") | lit("\r\n"));
         
         pdf.name("pdf");
         indirect_object.name("indirect object");
@@ -71,6 +92,7 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
         name.name("name");
         number.name("number");
         stream.name("stream");
+        xreftable.name("xreftable");
         
         using phx::ref;
         using phx::val;
@@ -90,8 +112,8 @@ struct document : qi::grammar<Parser::ConstIterator, simple_rule>
     }
     
     std::stringstream error_stream;
-    simple_rule name_escape, literal_string, string_escape;
-    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string;
+    simple_rule name_escape, literal_string, string_escape, xrefentry;
+    skipping_rule pdf, indirect_object, object, dictionary, name, number, stream, reference, array, string, hex_string, xreftable;
 };
 
 bool parse(boost::shared_ptr<Parser> stream)
