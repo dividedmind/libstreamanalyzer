@@ -28,6 +28,7 @@
 namespace Pdf { namespace Parser {
 //
 typedef boost::spirit::qi::rule<StreamWrapper::Iterator> simple_rule;
+typedef boost::spirit::qi::rule<StreamWrapper::Iterator, simple_rule> skip_rule;
 
 extern const simple_rule eol;
 extern const simple_rule whitespace;

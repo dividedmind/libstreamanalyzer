@@ -17,21 +17,15 @@
  *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <boost/spirit/include/qi_parse.hpp>
+#ifndef PDF_XREFTABLE_H
+#define PDF_XREFTABLE_H
 
-#include "xreftable.h"
-
-#include "footer.h"
+#include "basicparsers.h"
 
 namespace Pdf {
     namespace Parser {
-        const footer_type footer = xreftable;
+        extern const skip_rule xreftable;
     }
-    
-    namespace Footer {
-        bool parse(StreamWrapper::Iterator begin, StreamWrapper::Iterator end)
-        {
-            return boost::spirit::qi::phrase_parse(begin, end, Parser::footer, Parser::skipper);
-        }
-    }
-}
+};
+
+#endif // PDF_XREFTABLE_H
