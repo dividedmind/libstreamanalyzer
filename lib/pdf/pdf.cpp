@@ -85,8 +85,8 @@ main(int argc, char** argv) {
         StreamStatus r;
         try {
             r = parser.parse(&file);
-        } catch (Pdf::Parser::ParseError error) {
-            std::cout << "error in " << argv[i] << ": " << error.what() << std::endl;
+        } catch (std::string error) {
+            std::cout << "error in " << argv[i] << ": " << error << std::endl;
         }
         std::cout << "position: " << file.position();
         const char *buf;

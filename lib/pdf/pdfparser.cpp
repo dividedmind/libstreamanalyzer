@@ -31,11 +31,12 @@ PdfParser::parse(Strigi::StreamBase<char>* stream) {
     using Pdf::StreamWrapper;
     Pdf::StreamWrapper wrapper(stream);
     
-    for (StreamWrapper::Iterator it = wrapper.begin(); it != wrapper.end(); ++it) {
+    wrapper.seek(wrapper.size() - 512);
+    for (StreamWrapper::Iterator it = wrapper.here(); it != wrapper.end(); ++it) {
         StreamWrapper::Iterator current(it);
         if (Pdf::Footer::parse(current, wrapper.end()))
             return stream->status();
     }
     
-    throw "couldn't find footer";
+    throw std::string("couldn't find footer");
 }
