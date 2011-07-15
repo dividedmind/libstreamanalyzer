@@ -20,11 +20,32 @@
 #ifndef PDF_XREFTABLE_H
 #define PDF_XREFTABLE_H
 
+#include <map>
+#include <utility>
+#include <ostream>
+
 #include "basicparsers.h"
 
 namespace Pdf {
+    struct XRefTableIndex {
+        unsigned number, generation;
+        bool operator<(const XRefTableIndex &other) const;
+    };
+    
+    struct XRefTableEntry {
+        unsigned offset;
+        bool in_use;
+    };
+    
+    typedef std::map<XRefTableIndex, XRefTableEntry> XRefTable;
+    
+    std::ostream &operator<<(std::ostream &o, const XRefTable &t);
+    std::ostream &operator<<(std::ostream &o, const XRefTableEntry &t);
+    std::ostream &operator<<(std::ostream &o, const XRefTableIndex &t);
+
     namespace Parser {
-        extern const skip_rule xreftable;
+        typedef boost::spirit::qi::rule<StreamWrapper::Iterator, simple_rule, XRefTable()> xreftable_type;
+        extern xreftable_type xreftable;
     }
 };
 

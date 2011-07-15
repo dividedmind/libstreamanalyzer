@@ -17,8 +17,9 @@
  *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <boost/spirit/include/qi_parse.hpp>
-#include <boost/spirit/include/qi_nonterminal.hpp>
+#include <iostream>
+
+#include <boost/spirit/include/qi_parse_attr.hpp>
 
 #include "xreftable.h"
 
@@ -26,16 +27,18 @@
 
 namespace Pdf {
     namespace Parser {
-        const footer_type footer = xreftable.alias();
+        const footer_type footer = xreftable;
     }
     
     namespace Footer {
         bool parse(StreamWrapper::Iterator begin, StreamWrapper::Iterator end)
         {
-            Parser::footer_type footer = Parser::footer.alias();
-            footer.name("footer");
-            boost::spirit::qi::debug(footer);
-            return boost::spirit::qi::phrase_parse(begin, end, footer, Parser::skipper);
+            XRefTable xreftable;
+            if (boost::spirit::qi::phrase_parse(begin, end, Parser::xreftable, Parser::skipper, xreftable))
+                std::cerr << "parse successful" << std::endl << xreftable.size() << xreftable << std::endl;
+            else
+                return false;
+            return true;
         }
     }
 }
